@@ -6,8 +6,6 @@ import {
   Plus,
   Trash2,
   Loader2,
-  ArrowLeft,
-  Wallet,
   ArrowUpRight,
   ArrowDownRight,
   TrendingUp,
@@ -15,7 +13,6 @@ import {
   Calendar,
   DollarSign,
 } from "lucide-react";
-import { Link } from "react-router";
 import {
   transactionCreateSchema,
   type TransactionCreateValues,
@@ -27,6 +24,7 @@ import {
   useMonthlySummary,
 } from "@/hooks/use-transactions";
 import { useCategories } from "@/hooks/use-categories";
+import { AppLayout } from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -89,7 +87,6 @@ export default function TransactionsPage() {
   const createMutation = useCreateTransaction();
   const deleteMutation = useDeleteTransaction();
 
-  // 获取当前年月
   const now = new Date();
   const { data: summary } = useMonthlySummary(
     now.getFullYear(),
@@ -101,6 +98,7 @@ export default function TransactionsPage() {
     handleSubmit,
     formState: { errors },
     reset,
+    setValue,
     watch,
   } = useForm<TransactionCreateValues>({
     resolver: zodResolver(transactionCreateSchema),
@@ -119,32 +117,8 @@ export default function TransactionsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      {/* Header */}
-      <motion.header
-        initial={{ y: -20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.1, ...ease }}
-        className="sticky top-0 z-40 border-b border-border/50 bg-background/80 backdrop-blur-lg"
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2">
-            <Wallet className="size-5 text-primary" />
-            <span className="font-semibold text-lg">SmartWallet</span>
-          </Link>
-
-          <Link
-            to="/"
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-accent"
-          >
-            <ArrowLeft className="size-3.5" />
-            Back to Home
-          </Link>
-        </div>
-      </motion.header>
-
-      {/* Main Content */}
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <AppLayout>
+      <div className="max-w-5xl mx-auto">
         {/* Page Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -275,7 +249,7 @@ export default function TransactionsPage() {
                     )}
                   </div>
                   <div className="flex flex-col gap-2">
-                    <Label htmlFor="type">Type</Label>
+                    <Label>Type</Label>
                     <div className="flex gap-2">
                       <Button
                         type="button"
@@ -283,11 +257,7 @@ export default function TransactionsPage() {
                           selectedType === "expense" ? "default" : "outline"
                         }
                         className="flex-1"
-                        onClick={() =>
-                          register("type").onChange({
-                            target: { value: "expense" },
-                          })
-                        }
+                        onClick={() => setValue("type", "expense")}
                       >
                         <ArrowDownRight
                           className="size-4"
@@ -301,11 +271,7 @@ export default function TransactionsPage() {
                           selectedType === "income" ? "default" : "outline"
                         }
                         className="flex-1"
-                        onClick={() =>
-                          register("type").onChange({
-                            target: { value: "income" },
-                          })
-                        }
+                        onClick={() => setValue("type", "income")}
                       >
                         <ArrowUpRight
                           className="size-4"
@@ -415,10 +381,8 @@ export default function TransactionsPage() {
             </div>
           </div>
 
-          {/* Loading State */}
           {isLoading && <TransactionsPageSkeleton />}
 
-          {/* Error State */}
           {isError && (
             <Card className="border-destructive/50">
               <CardContent className="p-6 text-center">
@@ -435,7 +399,6 @@ export default function TransactionsPage() {
             </Card>
           )}
 
-          {/* Empty State */}
           {transactions && transactions.length === 0 && (
             <Card>
               <CardContent className="p-12 text-center">
@@ -452,7 +415,6 @@ export default function TransactionsPage() {
             </Card>
           )}
 
-          {/* Transactions List */}
           <AnimatePresence mode="popLayout">
             {transactions && transactions.length > 0 && (
               <div className="flex flex-col gap-3">
@@ -534,7 +496,7 @@ export default function TransactionsPage() {
             )}
           </AnimatePresence>
         </motion.div>
-      </main>
-    </div>
+      </div>
+    </AppLayout>
   );
 }

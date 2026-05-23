@@ -4,625 +4,625 @@
  */
 
 export interface paths {
-    "/api/health": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Health Check */
-        get: operations["health_check_api_health_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+  "/api/health": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/categories": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Read Categories */
-        get: operations["read_categories_api_categories_get"];
-        put?: never;
-        /** Create New Category */
-        post: operations["create_new_category_api_categories_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** Health Check */
+    get: operations["health_check_api_health_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/categories": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/categories/{category_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Read Category */
-        get: operations["read_category_api_categories__category_id__get"];
-        put?: never;
-        post?: never;
-        /** Delete N Category */
-        delete: operations["delete_n_category_api_categories__category_id__delete"];
-        options?: never;
-        head?: never;
-        /** Update N Category */
-        patch: operations["update_n_category_api_categories__category_id__patch"];
-        trace?: never;
+    /** Read Categories */
+    get: operations["read_categories_api_categories_get"];
+    put?: never;
+    /** Create New Category */
+    post: operations["create_new_category_api_categories_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/categories/{category_id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/transactions": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Read Transactions
-         * @description 获取所有交易，可按类型过滤。
-         */
-        get: operations["read_transactions_api_transactions_get"];
-        put?: never;
-        /**
-         * Create Transaction
-         * @description 创建新交易。
-         */
-        post: operations["create_transaction_api_transactions_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** Read Category */
+    get: operations["read_category_api_categories__category_id__get"];
+    put?: never;
+    post?: never;
+    /** Delete N Category */
+    delete: operations["delete_n_category_api_categories__category_id__delete"];
+    options?: never;
+    head?: never;
+    /** Update N Category */
+    patch: operations["update_n_category_api_categories__category_id__patch"];
+    trace?: never;
+  };
+  "/api/transactions": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/transactions/{transaction_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Read Transaction
-         * @description 获取单个交易。
-         */
-        get: operations["read_transaction_api_transactions__transaction_id__get"];
-        put?: never;
-        post?: never;
-        /**
-         * Delete Transaction
-         * @description 删除交易。
-         */
-        delete: operations["delete_transaction_api_transactions__transaction_id__delete"];
-        options?: never;
-        head?: never;
-        /**
-         * Update Transaction
-         * @description 更新交易。
-         */
-        patch: operations["update_transaction_api_transactions__transaction_id__patch"];
-        trace?: never;
+    /**
+     * Read Transactions
+     * @description 获取所有交易，可按类型过滤。
+     */
+    get: operations["read_transactions_api_transactions_get"];
+    put?: never;
+    /**
+     * Create Transaction
+     * @description 创建新交易。
+     */
+    post: operations["create_transaction_api_transactions_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/transactions/{transaction_id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/transactions/summary/monthly/{year}/{month}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Monthly Transaction Summary
-         * @description 获取指定月份的交易汇总。
-         */
-        get: operations["get_monthly_transaction_summary_api_transactions_summary_monthly__year___month__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /**
+     * Read Transaction
+     * @description 获取单个交易。
+     */
+    get: operations["read_transaction_api_transactions__transaction_id__get"];
+    put?: never;
+    post?: never;
+    /**
+     * Delete Transaction
+     * @description 删除交易。
+     */
+    delete: operations["delete_transaction_api_transactions__transaction_id__delete"];
+    options?: never;
+    head?: never;
+    /**
+     * Update Transaction
+     * @description 更新交易。
+     */
+    patch: operations["update_transaction_api_transactions__transaction_id__patch"];
+    trace?: never;
+  };
+  "/api/transactions/summary/monthly/{year}/{month}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
+    /**
+     * Get Monthly Transaction Summary
+     * @description 获取指定月份的交易汇总。
+     */
+    get: operations["get_monthly_transaction_summary_api_transactions_summary_monthly__year___month__get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
-    schemas: {
-        /** CategoryCreate */
-        CategoryCreate: {
-            /** Name */
-            name: string;
-            /** Icon */
-            icon?: string | null;
-        };
-        /** CategoryRead */
-        CategoryRead: {
-            /** Name */
-            name: string;
-            /** Icon */
-            icon?: string | null;
-            /** Id */
-            id: number;
-        };
-        /** CategorySummary */
-        CategorySummary: {
-            /** Category Id */
-            category_id: number;
-            /** Category Name */
-            category_name: string;
-            /** Category Icon */
-            category_icon: string | null;
-            /** Total */
-            total: number;
-            /** Count */
-            count: number;
-        };
-        /** CategoryUpdate */
-        CategoryUpdate: {
-            /** Name */
-            name?: number | null;
-            /** Icon */
-            icon?: string | null;
-        };
-        /** HTTPValidationError */
-        HTTPValidationError: {
-            /** Detail */
-            detail?: components["schemas"]["ValidationError"][];
-        };
-        /** TransactionCreate */
-        TransactionCreate: {
-            /** Name */
-            name?: string | null;
-            /** Amount */
-            amount: number;
-            /** Type */
-            type: string;
-            /** Category Id */
-            category_id: number;
-            /** Description */
-            description?: string | null;
-            /**
-             * Date
-             * Format: date
-             */
-            date: string;
-        };
-        /** TransactionRead */
-        TransactionRead: {
-            /** Name */
-            name?: string | null;
-            /** Amount */
-            amount: number;
-            /** Type */
-            type: string;
-            /** Category Id */
-            category_id: number;
-            /** Description */
-            description?: string | null;
-            /**
-             * Date
-             * Format: date
-             */
-            date: string;
-            /** Id */
-            id: number;
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at: string;
-        };
-        /** TransactionSummary */
-        TransactionSummary: {
-            /** Total Expense */
-            total_expense: number;
-            /** Total Income */
-            total_income: number;
-            /** Net */
-            net: number;
-            /** By Category */
-            by_category: components["schemas"]["CategorySummary"][];
-        };
-        /** TransactionUpdate */
-        TransactionUpdate: {
-            /** Name */
-            name?: string | null;
-            /** Amount */
-            amount?: number | null;
-            /** Type */
-            type?: string | null;
-            /** Category Id */
-            category_id?: number | null;
-            /** Description */
-            description?: string | null;
-        };
-        /** ValidationError */
-        ValidationError: {
-            /** Location */
-            loc: (string | number)[];
-            /** Message */
-            msg: string;
-            /** Error Type */
-            type: string;
-            /** Input */
-            input?: unknown;
-            /** Context */
-            ctx?: Record<string, never>;
-        };
+  schemas: {
+    /** CategoryCreate */
+    CategoryCreate: {
+      /** Name */
+      name: string;
+      /** Icon */
+      icon?: string | null;
     };
-    responses: never;
-    parameters: never;
-    requestBodies: never;
-    headers: never;
-    pathItems: never;
+    /** CategoryRead */
+    CategoryRead: {
+      /** Name */
+      name: string;
+      /** Icon */
+      icon?: string | null;
+      /** Id */
+      id: number;
+    };
+    /** CategorySummary */
+    CategorySummary: {
+      /** Category Id */
+      category_id: number;
+      /** Category Name */
+      category_name: string;
+      /** Category Icon */
+      category_icon: string | null;
+      /** Total */
+      total: number;
+      /** Count */
+      count: number;
+    };
+    /** CategoryUpdate */
+    CategoryUpdate: {
+      /** Name */
+      name?: number | null;
+      /** Icon */
+      icon?: string | null;
+    };
+    /** HTTPValidationError */
+    HTTPValidationError: {
+      /** Detail */
+      detail?: components["schemas"]["ValidationError"][];
+    };
+    /** TransactionCreate */
+    TransactionCreate: {
+      /** Name */
+      name?: string | null;
+      /** Amount */
+      amount: number;
+      /** Type */
+      type: string;
+      /** Category Id */
+      category_id: number;
+      /** Description */
+      description?: string | null;
+      /**
+       * Date
+       * Format: date
+       */
+      date: string;
+    };
+    /** TransactionRead */
+    TransactionRead: {
+      /** Name */
+      name?: string | null;
+      /** Amount */
+      amount: number;
+      /** Type */
+      type: string;
+      /** Category Id */
+      category_id: number;
+      /** Description */
+      description?: string | null;
+      /**
+       * Date
+       * Format: date
+       */
+      date: string;
+      /** Id */
+      id: number;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+    };
+    /** TransactionSummary */
+    TransactionSummary: {
+      /** Total Expense */
+      total_expense: number;
+      /** Total Income */
+      total_income: number;
+      /** Net */
+      net: number;
+      /** By Category */
+      by_category: components["schemas"]["CategorySummary"][];
+    };
+    /** TransactionUpdate */
+    TransactionUpdate: {
+      /** Name */
+      name?: string | null;
+      /** Amount */
+      amount?: number | null;
+      /** Type */
+      type?: string | null;
+      /** Category Id */
+      category_id?: number | null;
+      /** Description */
+      description?: string | null;
+    };
+    /** ValidationError */
+    ValidationError: {
+      /** Location */
+      loc: (string | number)[];
+      /** Message */
+      msg: string;
+      /** Error Type */
+      type: string;
+      /** Input */
+      input?: unknown;
+      /** Context */
+      ctx?: Record<string, never>;
+    };
+  };
+  responses: never;
+  parameters: never;
+  requestBodies: never;
+  headers: never;
+  pathItems: never;
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    health_check_api_health_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        [key: string]: string;
-                    };
-                };
-            };
-        };
+  health_check_api_health_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    read_categories_api_categories_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CategoryRead"][];
-                };
-            };
+        content: {
+          "application/json": {
+            [key: string]: string;
+          };
         };
+      };
     };
-    create_new_category_api_categories_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CategoryCreate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CategoryRead"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+  };
+  read_categories_api_categories_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    read_category_api_categories__category_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                category_id: number;
-            };
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CategoryRead"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+        content: {
+          "application/json": components["schemas"]["CategoryRead"][];
         };
+      };
     };
-    delete_n_category_api_categories__category_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                category_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+  };
+  create_new_category_api_categories_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    update_n_category_api_categories__category_id__patch: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                category_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CategoryUpdate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CategoryRead"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["CategoryCreate"];
+      };
     };
-    read_transactions_api_transactions_get: {
-        parameters: {
-            query?: {
-                type?: string | null;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TransactionRead"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+        content: {
+          "application/json": components["schemas"]["CategoryRead"];
         };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
     };
-    create_transaction_api_transactions_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["TransactionCreate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TransactionRead"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+  };
+  read_category_api_categories__category_id__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        category_id: number;
+      };
+      cookie?: never;
     };
-    read_transaction_api_transactions__transaction_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                transaction_id: number;
-            };
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TransactionRead"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+        content: {
+          "application/json": components["schemas"]["CategoryRead"];
         };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
     };
-    delete_transaction_api_transactions__transaction_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                transaction_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+  };
+  delete_n_category_api_categories__category_id__delete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        category_id: number;
+      };
+      cookie?: never;
     };
-    update_transaction_api_transactions__transaction_id__patch: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                transaction_id: number;
-            };
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["TransactionUpdate"];
-            };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
         };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TransactionRead"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
         };
+      };
     };
-    get_monthly_transaction_summary_api_transactions_summary_monthly__year___month__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                year: number;
-                month: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TransactionSummary"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+  };
+  update_n_category_api_categories__category_id__patch: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        category_id: number;
+      };
+      cookie?: never;
     };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["CategoryUpdate"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["CategoryRead"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  read_transactions_api_transactions_get: {
+    parameters: {
+      query?: {
+        type?: string | null;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["TransactionRead"][];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  create_transaction_api_transactions_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["TransactionCreate"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["TransactionRead"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  read_transaction_api_transactions__transaction_id__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        transaction_id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["TransactionRead"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  delete_transaction_api_transactions__transaction_id__delete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        transaction_id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  update_transaction_api_transactions__transaction_id__patch: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        transaction_id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["TransactionUpdate"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["TransactionRead"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  get_monthly_transaction_summary_api_transactions_summary_monthly__year___month__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        year: number;
+        month: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["TransactionSummary"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
 }

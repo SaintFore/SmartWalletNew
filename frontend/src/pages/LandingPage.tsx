@@ -5,14 +5,21 @@ import {
   Shield,
   Zap,
   TrendingUp,
+  TrendingDown,
   Wallet,
   PieChart,
   Smartphone,
   Moon,
   Sun,
   ArrowUpRight,
+  ArrowDownRight,
+  DollarSign,
+  Plus,
+  LayoutDashboard,
 } from "lucide-react";
 import { useDarkMode } from "@/hooks/use-dark-mode";
+import { useCategories } from "@/hooks/use-categories";
+import { useTransactions, useMonthlySummary } from "@/hooks/use-transactions";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -20,38 +27,22 @@ import { Separator } from "@/components/ui/separator";
 
 const ease = { duration: 0.4, ease: [0.22, 1, 0.36, 1] as const };
 
-const features = [
-  {
-    icon: PieChart,
-    title: "Smart Categories",
-    description: "Organize transactions with intelligent categorization",
-  },
-  {
-    icon: TrendingUp,
-    title: "Track Progress",
-    description: "Visualize your financial health with real-time insights",
-  },
-  {
-    icon: Shield,
-    title: "Bank-Level Security",
-    description: "Your data is encrypted and protected at all times",
-  },
-  {
-    icon: Smartphone,
-    title: "Mobile First",
-    description: "Access your wallet anywhere, anytime on any device",
-  },
-];
-
-const stats = [
-  { label: "Active Users", value: "10K+", icon: Wallet },
-  { label: "Transactions", value: "1M+", icon: ArrowUpRight },
-  { label: "Categories", value: "50+", icon: PieChart },
-  { label: "Uptime", value: "99.9%", icon: Shield },
-];
+function formatCurrency(amount: number): string {
+  return new Intl.NumberFormat("zh-CN", {
+    style: "currency",
+    currency: "CNY",
+  }).format(amount);
+}
 
 export default function LandingPage() {
   const { dark, toggle } = useDarkMode();
+  const { data: categories } = useCategories();
+  const { data: transactions } = useTransactions();
+  const now = new Date();
+  const { data: summary } = useMonthlySummary(
+    now.getFullYear(),
+    now.getMonth() + 1,
+  );
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -69,18 +60,12 @@ export default function LandingPage() {
           </Link>
 
           <nav className="flex items-center gap-1">
-            <Link
-              to="/categories"
-              className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-accent"
-            >
-              Categories
-            </Link>
-            <Link
-              to="/transactions"
-              className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-accent"
-            >
-              Transactions
-            </Link>
+            <Button variant="ghost" asChild>
+              <Link to="/categories">Categories</Link>
+            </Button>
+            <Button variant="ghost" asChild>
+              <Link to="/transactions">Transactions</Link>
+            </Button>
             <Separator orientation="vertical" className="h-4" />
             <button
               onClick={toggle}
@@ -94,7 +79,7 @@ export default function LandingPage() {
       </motion.header>
 
       {/* Hero */}
-      <section className="relative pt-24 pb-16 md:pt-32 md:pb-24">
+      <section className="relative pt-16 pb-12 md:pt-24 md:pb-16">
         <div className="absolute inset-0 -z-10 overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.03] to-transparent" />
           <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/[0.05] rounded-full blur-3xl" />
@@ -107,7 +92,7 @@ export default function LandingPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={ease}
           >
-            <Badge variant="secondary" className="mb-6">
+            <Badge variant="secondary" className="mb-4">
               <Zap className="size-3.5" data-icon="inline-start" />
               Smart Financial Management
             </Badge>
@@ -117,7 +102,7 @@ export default function LandingPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1, ...ease }}
-            className="text-4xl md:text-6xl font-semibold tracking-tight mb-6"
+            className="text-4xl md:text-5xl font-semibold tracking-tight mb-4"
           >
             Take Control of
             <br />
@@ -128,10 +113,10 @@ export default function LandingPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, ...ease }}
-            className="text-lg text-muted-foreground max-w-2xl mx-auto mb-10"
+            className="text-lg text-muted-foreground max-w-xl mx-auto mb-8"
           >
-            SmartWallet helps you track expenses, categorize transactions, and
-            achieve your financial goals with intelligent insights.
+            Track expenses, categorize transactions, and achieve your financial
+            goals with intelligent insights.
           </motion.p>
 
           <motion.div
@@ -141,65 +126,290 @@ export default function LandingPage() {
             className="flex flex-col sm:flex-row gap-3 justify-center"
           >
             <Button size="lg" asChild>
-              <Link to="/categories">
-                Get Started
-                <ArrowRight className="size-4" data-icon="inline-end" />
+              <Link to="/transactions">
+                <Plus className="size-4" data-icon="inline-start" />
+                Add Transaction
               </Link>
             </Button>
-            <Button size="lg" variant="outline">
-              Learn More
+            <Button size="lg" variant="outline" asChild>
+              <Link to="/categories">
+                <LayoutDashboard className="size-4" data-icon="inline-start" />
+                Manage Categories
+              </Link>
             </Button>
           </motion.div>
         </div>
       </section>
 
-      {/* Stats */}
-      <section className="py-16 bg-secondary/30">
+      {/* Quick Stats */}
+      <section className="pb-12">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {stats.map((stat, i) => (
-              <motion.div
-                key={stat.label}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1, ...ease }}
-              >
-                <Card>
-                  <CardContent className="p-6 text-center">
-                    <stat.icon className="size-6 text-primary mx-auto mb-3" />
-                    <p className="text-2xl font-semibold mb-1">{stat.value}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {stat.label}
-                    </p>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4, ...ease }}
+            className="grid grid-cols-2 md:grid-cols-4 gap-4"
+          >
+            <Card>
+              <CardContent className="p-4 text-center">
+                <div className="size-10 rounded-lg bg-emerald-500/10 flex items-center justify-center mx-auto mb-2">
+                  <TrendingUp className="size-5 text-emerald-500" />
+                </div>
+                <p className="text-sm text-muted-foreground">Income</p>
+                <p className="text-xl font-semibold text-emerald-500">
+                  {summary ? formatCurrency(summary.total_income) : "¥0.00"}
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4 text-center">
+                <div className="size-10 rounded-lg bg-red-500/10 flex items-center justify-center mx-auto mb-2">
+                  <TrendingDown className="size-5 text-red-500" />
+                </div>
+                <p className="text-sm text-muted-foreground">Expense</p>
+                <p className="text-xl font-semibold text-red-500">
+                  {summary ? formatCurrency(summary.total_expense) : "¥0.00"}
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4 text-center">
+                <div className="size-10 rounded-lg bg-primary/10 flex items-center justify-center mx-auto mb-2">
+                  <DollarSign className="size-5 text-primary" />
+                </div>
+                <p className="text-sm text-muted-foreground">Net</p>
+                <p
+                  className={`text-xl font-semibold ${
+                    summary && summary.net >= 0
+                      ? "text-emerald-500"
+                      : "text-red-500"
+                  }`}
+                >
+                  {summary ? formatCurrency(summary.net) : "¥0.00"}
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4 text-center">
+                <div className="size-10 rounded-lg bg-primary/10 flex items-center justify-center mx-auto mb-2">
+                  <PieChart className="size-5 text-primary" />
+                </div>
+                <p className="text-sm text-muted-foreground">Categories</p>
+                <p className="text-xl font-semibold">
+                  {categories?.length || 0}
+                </p>
+              </CardContent>
+            </Card>
+          </motion.div>
         </div>
       </section>
 
-      {/* Features */}
-      <section className="py-16 md:py-24">
+      <Separator className="max-w-5xl mx-auto" />
+
+      {/* Recent Transactions */}
+      <section className="py-12">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={ease}
-            className="text-center mb-12"
+            className="mb-6"
           >
-            <h2 className="text-3xl font-semibold mb-3">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold">Recent Transactions</h2>
+              <Button variant="ghost" asChild>
+                <Link to="/transactions">
+                  View All
+                  <ArrowRight className="size-4 ml-1" />
+                </Link>
+              </Button>
+            </div>
+          </motion.div>
+
+          {transactions && transactions.length > 0 ? (
+            <div className="flex flex-col gap-3">
+              {transactions.slice(0, 5).map((transaction, i) => (
+                <motion.div
+                  key={transaction.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.05, ...ease }}
+                >
+                  <Card className="hover:border-border hover:shadow-sm transition-all">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div
+                            className={`size-10 rounded-lg flex items-center justify-center ${
+                              transaction.type === "income"
+                                ? "bg-emerald-500/10"
+                                : "bg-red-500/10"
+                            }`}
+                          >
+                            {transaction.type === "income" ? (
+                              <ArrowUpRight className="size-5 text-emerald-500" />
+                            ) : (
+                              <ArrowDownRight className="size-5 text-red-500" />
+                            )}
+                          </div>
+                          <div>
+                            <p className="font-medium">
+                              {transaction.name || "Untitled"}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {new Date(transaction.date).toLocaleDateString(
+                                "zh-CN",
+                              )}
+                            </p>
+                          </div>
+                        </div>
+                        <p
+                          className={`font-semibold ${
+                            transaction.type === "income"
+                              ? "text-emerald-500"
+                              : "text-red-500"
+                          }`}
+                        >
+                          {transaction.type === "income" ? "+" : "-"}
+                          {formatCurrency(transaction.amount)}
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          ) : (
+            <Card>
+              <CardContent className="p-8 text-center">
+                <DollarSign className="size-12 text-muted-foreground/40 mx-auto mb-3" />
+                <p className="text-muted-foreground">No transactions yet</p>
+                <p className="text-sm text-muted-foreground/60 mb-4">
+                  Start tracking your finances
+                </p>
+                <Button asChild>
+                  <Link to="/transactions">
+                    <Plus className="size-4 mr-1" />
+                    Add First Transaction
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </section>
+
+      <Separator className="max-w-5xl mx-auto" />
+
+      {/* Quick Categories */}
+      <section className="py-12">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={ease}
+            className="mb-6"
+          >
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold">Categories</h2>
+              <Button variant="ghost" asChild>
+                <Link to="/categories">
+                  Manage
+                  <ArrowRight className="size-4 ml-1" />
+                </Link>
+              </Button>
+            </div>
+          </motion.div>
+
+          {categories && categories.length > 0 ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+              {categories.slice(0, 8).map((category, i) => (
+                <motion.div
+                  key={category.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.05, ...ease }}
+                >
+                  <Card className="hover:border-border hover:shadow-sm transition-all cursor-pointer">
+                    <CardContent className="p-4 text-center">
+                      {category.icon ? (
+                        <span className="text-3xl">{category.icon}</span>
+                      ) : (
+                        <PieChart className="size-8 text-muted-foreground mx-auto" />
+                      )}
+                      <p className="font-medium text-sm mt-2">
+                        {category.name}
+                      </p>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          ) : (
+            <Card>
+              <CardContent className="p-8 text-center">
+                <PieChart className="size-12 text-muted-foreground/40 mx-auto mb-3" />
+                <p className="text-muted-foreground">No categories yet</p>
+                <p className="text-sm text-muted-foreground/60 mb-4">
+                  Create categories to organize transactions
+                </p>
+                <Button asChild>
+                  <Link to="/categories">
+                    <Plus className="size-4 mr-1" />
+                    Create First Category
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </section>
+
+      {/* Features */}
+      <section className="py-12 bg-secondary/30">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={ease}
+            className="text-center mb-10"
+          >
+            <h2 className="text-2xl font-semibold mb-2">
               Why Choose SmartWallet?
             </h2>
-            <p className="text-muted-foreground max-w-xl mx-auto">
-              Powerful features designed to simplify your financial life
+            <p className="text-muted-foreground">
+              Powerful features to simplify your financial life
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-2 gap-6">
-            {features.map((feature, i) => (
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[
+              {
+                icon: PieChart,
+                title: "Smart Categories",
+                desc: "Organize with intelligent categorization",
+              },
+              {
+                icon: TrendingUp,
+                title: "Track Progress",
+                desc: "Visualize your financial health",
+              },
+              {
+                icon: Shield,
+                title: "Secure",
+                desc: "Your data is encrypted and protected",
+              },
+              {
+                icon: Smartphone,
+                title: "Mobile First",
+                desc: "Access anywhere, anytime",
+              },
+            ].map((feature, i) => (
               <motion.div
                 key={feature.title}
                 initial={{ opacity: 0, y: 20 }}
@@ -208,49 +418,19 @@ export default function LandingPage() {
                 transition={{ delay: i * 0.1, ...ease }}
               >
                 <Card className="h-full hover:border-border hover:shadow-md transition-all">
-                  <CardContent className="p-6">
-                    <div className="flex items-start gap-4">
-                      <div className="size-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                        <feature.icon className="size-5 text-primary" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-lg mb-2">
-                          {feature.title}
-                        </h3>
-                        <p className="text-muted-foreground text-sm">
-                          {feature.description}
-                        </p>
-                      </div>
+                  <CardContent className="p-5 text-center">
+                    <div className="size-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-3">
+                      <feature.icon className="size-6 text-primary" />
                     </div>
+                    <h3 className="font-semibold mb-1">{feature.title}</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {feature.desc}
+                    </p>
                   </CardContent>
                 </Card>
               </motion.div>
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* CTA */}
-      <section className="py-16 md:py-24 bg-secondary/30">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={ease}
-          >
-            <h2 className="text-3xl font-semibold mb-4">Ready to Start?</h2>
-            <p className="text-muted-foreground mb-8 max-w-xl mx-auto">
-              Join thousands of users who are already managing their finances
-              smarter.
-            </p>
-            <Button size="lg" asChild>
-              <Link to="/categories">
-                Start Managing Categories
-                <ArrowRight className="size-4" data-icon="inline-end" />
-              </Link>
-            </Button>
-          </motion.div>
         </div>
       </section>
 

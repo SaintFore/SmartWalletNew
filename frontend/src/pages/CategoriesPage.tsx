@@ -1,17 +1,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  Plus,
-  Trash2,
-  FolderOpen,
-  Loader2,
-  ArrowLeft,
-  Wallet,
-  PieChart,
-  Search,
-} from "lucide-react";
-import { Link } from "react-router";
+import { Plus, Trash2, FolderOpen, Loader2, PieChart } from "lucide-react";
 import {
   categoryCreateSchema,
   type CategoryCreateValues,
@@ -21,6 +11,7 @@ import {
   useCreateCategory,
   useDeleteCategory,
 } from "@/hooks/use-categories";
+import { AppLayout } from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -39,19 +30,19 @@ const ease = { duration: 0.4, ease: [0.22, 1, 0.36, 1] as const };
 
 function CategoriesPageSkeleton() {
   return (
-    <div className="flex flex-col gap-3">
-      {Array.from({ length: 4 }).map((_, i) => (
-        <div
-          key={i}
-          className="flex items-center gap-4 p-4 rounded-xl border border-border/50 bg-card"
-        >
-          <Skeleton className="size-12 rounded-lg" />
-          <div className="flex-1 flex flex-col gap-2">
-            <Skeleton className="h-4 w-32" />
-            <Skeleton className="h-3 w-20" />
-          </div>
-          <Skeleton className="size-8 rounded-md" />
-        </div>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      {Array.from({ length: 6 }).map((_, i) => (
+        <Card key={i}>
+          <CardContent className="p-5">
+            <div className="flex items-start gap-3">
+              <Skeleton className="size-12 rounded-xl" />
+              <div className="flex-1 flex flex-col gap-2">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-3 w-16" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       ))}
     </div>
   );
@@ -78,32 +69,8 @@ export default function CategoriesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      {/* Header */}
-      <motion.header
-        initial={{ y: -20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.1, ...ease }}
-        className="sticky top-0 z-40 border-b border-border/50 bg-background/80 backdrop-blur-lg"
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2">
-            <Wallet className="size-5 text-primary" />
-            <span className="font-semibold text-lg">SmartWallet</span>
-          </Link>
-
-          <Link
-            to="/"
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-accent"
-          >
-            <ArrowLeft className="size-3.5" />
-            Back to Home
-          </Link>
-        </div>
-      </motion.header>
-
-      {/* Main Content */}
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <AppLayout>
+      <div className="max-w-5xl mx-auto">
         {/* Page Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -124,8 +91,7 @@ export default function CategoriesPage() {
               </div>
             </div>
             <Badge variant="secondary" className="w-fit">
-              {categories?.length || 0}{" "}
-              {categories?.length === 1 ? "category" : "categories"}
+              {categories?.length || 0} categories
             </Badge>
           </div>
         </motion.div>
@@ -207,24 +173,10 @@ export default function CategoriesPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, ...ease }}
         >
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-medium">Your Categories</h2>
-            <div className="flex items-center gap-2">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search categories..."
-                  className="pl-9 w-64"
-                  disabled
-                />
-              </div>
-            </div>
-          </div>
+          <h2 className="text-lg font-medium mb-6">Your Categories</h2>
 
-          {/* Loading State */}
           {isLoading && <CategoriesPageSkeleton />}
 
-          {/* Error State */}
           {isError && (
             <Card className="border-destructive/50">
               <CardContent className="p-6 text-center">
@@ -241,7 +193,6 @@ export default function CategoriesPage() {
             </Card>
           )}
 
-          {/* Empty State */}
           {categories && categories.length === 0 && (
             <Card>
               <CardContent className="p-12 text-center">
@@ -253,18 +204,10 @@ export default function CategoriesPage() {
                   Create your first category to start organizing your
                   transactions.
                 </p>
-                <Button
-                  variant="outline"
-                  onClick={() => document.getElementById("name")?.focus()}
-                >
-                  <Plus className="size-4" data-icon="inline-start" />
-                  Create First Category
-                </Button>
               </CardContent>
             </Card>
           )}
 
-          {/* Categories Grid */}
           <AnimatePresence mode="popLayout">
             {categories && categories.length > 0 && (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -279,7 +222,7 @@ export default function CategoriesPage() {
                   >
                     <Card className="group hover:border-border hover:shadow-md transition-all h-full">
                       <CardContent className="p-5">
-                        <div className="flex items-start justify-between mb-4">
+                        <div className="flex items-start justify-between">
                           <div className="flex items-center gap-3">
                             {category.icon ? (
                               <div className="size-12 rounded-xl bg-primary/10 flex items-center justify-center text-2xl">
@@ -291,9 +234,7 @@ export default function CategoriesPage() {
                               </div>
                             )}
                             <div>
-                              <p className="font-medium text-base">
-                                {category.name}
-                              </p>
+                              <p className="font-medium">{category.name}</p>
                               <p className="text-xs text-muted-foreground">
                                 ID: {category.id}
                               </p>
@@ -309,11 +250,6 @@ export default function CategoriesPage() {
                             <Trash2 className="size-4 text-muted-foreground hover:text-destructive" />
                           </Button>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline" className="text-xs">
-                            Category
-                          </Badge>
-                        </div>
                       </CardContent>
                     </Card>
                   </motion.div>
@@ -322,7 +258,7 @@ export default function CategoriesPage() {
             )}
           </AnimatePresence>
         </motion.div>
-      </main>
-    </div>
+      </div>
+    </AppLayout>
   );
 }
