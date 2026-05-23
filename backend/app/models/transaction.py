@@ -5,6 +5,7 @@ from sqlmodel import Field, SQLModel
 
 class Transaction(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
+    name: str | None = None
     amount: float
     type: str = Field(default="expense")
     category_id: int = Field(foreign_key="category.id")
