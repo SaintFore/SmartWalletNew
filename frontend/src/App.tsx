@@ -4,6 +4,7 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import LandingPage from "./pages/LandingPage";
 
 const CategoriesPage = lazy(() => import("./pages/CategoriesPage"));
+const TransactionsPage = lazy(() => import("./pages/TransactionsPage"));
 const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
 
 function PageFallback() {
@@ -21,6 +22,7 @@ function withSuspense(children: React.ReactNode) {
 const router = createBrowserRouter([
   { path: "/", element: <LandingPage /> },
   { path: "/categories", element: withSuspense(<CategoriesPage />) },
+  { path: "/transactions", element: withSuspense(<TransactionsPage />) },
   { path: "*", element: withSuspense(<NotFoundPage />) },
 ]);
 

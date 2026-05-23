@@ -23,7 +23,7 @@ class TransactionRead(TransactionBase):
 
 
 class TransactionUpdate(SQLModel):
-    name: int | None = None
+    name: str | None = None
     amount: float | None = None
     type: str | None = None
     category_id: int | None = None
