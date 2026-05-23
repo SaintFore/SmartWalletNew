@@ -1,0 +1,37 @@
+[project]
+name = "SamrtWallet"
+version = "0.1.0"
+description = "An ai online wallet"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+  "alembic>=1.18.4",
+  "fastapi[standard]>=0.136.1",
+  "loguru>=0.7.3",
+  "pydantic-settings>=2.14.1",
+  "sqlmodel>=0.0.38",
+]
+
+[dependency-groups]
+dev = [
+  "httpx>=0.28.1",
+  "pyright>=1.1.409",
+  "pytest>=9.0.3",
+  "pytest-cov>=7.1.0",
+  "ruff>=0.15.13",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.pyright]
+pythonVersion = "3.12"
+typeCheckingMode = "standard"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
