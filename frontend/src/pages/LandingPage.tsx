@@ -40,10 +40,10 @@ export default function LandingPage() {
             Home
           </Link>
           <Link
-            to="/items"
+            to="/categories"
             className="px-5 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-full hover:bg-accent"
           >
-            Items Demo
+            Categories
           </Link>
           <button
             onClick={toggle}
@@ -95,8 +95,8 @@ export default function LandingPage() {
             className="flex flex-col sm:flex-row gap-4 justify-center"
           >
             <Button asChild>
-              <Link to="/items">
-                View Items Demo
+              <Link to="/categories">
+                View Categories
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Link>
             </Button>

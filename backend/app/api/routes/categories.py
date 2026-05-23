@@ -12,15 +12,17 @@ router = APIRouter(prefix="/categories", tags=["categories"])
 
 
 @router.get("", response_model=list[CategoryRead])
-def read_categorys(session: Annotated[Session, Depends(get_session)]) -> list[Category]:
+def read_categories(
+    session: Annotated[Session, Depends(get_session)],
+) -> list[Category]:
     return get(session)
 
 
 @router.get("/{category_id}", response_model=CategoryRead)
 def read_category(
-    item_id: int, session: Annotated[Session, Depends(get_session)]
+    category_id: int, session: Annotated[Session, Depends(get_session)]
 ) -> Category:
-    category = get_all(session, item_id)
+    category = get_all(session, category_id)
     if not category:
         raise HTTPException(status_code=404, detail="category not found")
     return category
@@ -35,8 +37,10 @@ def create_new_category(
 
 
 @router.delete("/{category_id}", status_code=204)
-def delete_n_category(item_id: int, session: Annotated[Session, Depends(get_session)]):
-    category = delete(item_id, session)
+def delete_n_category(
+    category_id: int, session: Annotated[Session, Depends(get_session)]
+):
+    category = delete(category_id, session)
     if not category:
         raise HTTPException(status_code=404, detail="category not found")
 

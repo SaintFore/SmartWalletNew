@@ -3,8 +3,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Trash2, Package, Loader2, ArrowLeft } from "lucide-react";
 import { Link } from "react-router";
-import { itemCreateSchema, type ItemCreateValues } from "@/schemas/item";
-import { useItems, useCreateItem, useDeleteItem } from "@/hooks/use-items";
+import { categoryCreateSchema, type CategoryCreateValues } from "@/schemas/category";
+import { useCategories, useCreateCategory, useDeleteCategory } from "@/hooks/use-categories";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,21 +18,21 @@ import {
 
 const smooth = { duration: 0.65, ease: [0.22, 1, 0.36, 1] as const };
 
-export default function ItemsPage() {
-  const { data: items, isLoading, isError } = useItems();
-  const createMutation = useCreateItem();
-  const deleteMutation = useDeleteItem();
+export default function CategoriesPage() {
+  const { data: categories, isLoading, isError } = useCategories();
+  const createMutation = useCreateCategory();
+  const deleteMutation = useDeleteCategory();
 
   const {
     register,
     handleSubmit,
     formState: { errors },
     reset,
-  } = useForm<ItemCreateValues>({
-    resolver: zodResolver(itemCreateSchema),
+  } = useForm<CategoryCreateValues>({
+    resolver: zodResolver(categoryCreateSchema),
   });
 
-  function onSubmit(data: ItemCreateValues) {
+  function onSubmit(data: CategoryCreateValues) {
     createMutation.mutate(data, {
       onSuccess: () => reset(),
     });
@@ -59,10 +59,10 @@ export default function ItemsPage() {
             Home
           </Link>
           <Link
-            to="/items"
+            to="/categories"
             className="px-5 py-2.5 text-sm font-medium text-foreground bg-accent rounded-full"
           >
-            Items
+            Categories
           </Link>
         </motion.div>
       </motion.nav>
@@ -75,12 +75,9 @@ export default function ItemsPage() {
           transition={smooth}
           className="mb-8"
         >
-          <h1 className="text-3xl font-bold mb-2">Items</h1>
+          <h1 className="text-3xl font-bold mb-2">Categories</h1>
           <p className="text-muted-foreground">
-            CRUD demo powered by{" "}
-            <span className="font-medium text-foreground">react-query</span> +{" "}
-            <span className="font-medium text-foreground">react-hook-form</span>{" "}
-            + <span className="font-medium text-foreground">zod</span>
+            Manage your transaction categories
           </p>
         </motion.div>
 
@@ -92,9 +89,9 @@ export default function ItemsPage() {
         >
           <Card className="mb-8">
             <CardHeader>
-              <CardTitle className="text-lg">Add Item</CardTitle>
+              <CardTitle className="text-lg">Add Category</CardTitle>
               <CardDescription>
-                Create a new item via <code>POST /api/items</code>
+                Create a new category via <code>POST /api/categories</code>
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -108,7 +105,7 @@ export default function ItemsPage() {
                   </Label>
                   <Input
                     id="name"
-                    placeholder="Item name"
+                    placeholder="Category name"
                     {...register("name")}
                   />
                   {errors.name && (
@@ -118,13 +115,13 @@ export default function ItemsPage() {
                   )}
                 </div>
                 <div className="flex-1 flex flex-col gap-1.5">
-                  <Label htmlFor="description" className="sr-only">
-                    Description
+                  <Label htmlFor="icon" className="sr-only">
+                    Icon
                   </Label>
                   <Input
-                    id="description"
-                    placeholder="Description (optional)"
-                    {...register("description")}
+                    id="icon"
+                    placeholder="Icon (emoji)"
+                    {...register("icon")}
                   />
                 </div>
                 <Button
@@ -142,14 +139,14 @@ export default function ItemsPage() {
               </form>
               {createMutation.isError && (
                 <p className="text-sm text-destructive mt-2">
-                  Failed to create item. Is the API running?
+                  Failed to create category. Is the API running?
                 </p>
               )}
             </CardContent>
           </Card>
         </motion.div>
 
-        {/* Items List */}
+        {/* Categories List */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -158,7 +155,7 @@ export default function ItemsPage() {
           {isLoading && (
             <div className="flex items-center justify-center py-16 text-muted-foreground">
               <Loader2 className="w-5 h-5 animate-spin mr-2" />
-              Loading items...
+              Loading categories...
             </div>
           )}
 
@@ -166,7 +163,7 @@ export default function ItemsPage() {
             <Card className="border-destructive/50">
               <CardContent className="py-8 text-center">
                 <p className="text-destructive font-medium mb-1">
-                  Failed to load items
+                  Failed to load categories
                 </p>
                 <p className="text-sm text-muted-foreground">
                   Make sure the API is running at{" "}
@@ -176,11 +173,11 @@ export default function ItemsPage() {
             </Card>
           )}
 
-          {items && items.length === 0 && (
+          {categories && categories.length === 0 && (
             <Card>
               <CardContent className="py-12 text-center">
                 <Package className="w-10 h-10 text-muted-foreground/40 mx-auto mb-3" />
-                <p className="text-muted-foreground">No items yet</p>
+                <p className="text-muted-foreground">No categories yet</p>
                 <p className="text-sm text-muted-foreground/60">
                   Add one using the form above
                 </p>
@@ -189,9 +186,9 @@ export default function ItemsPage() {
           )}
 
           <AnimatePresence mode="popLayout">
-            {items?.map((item) => (
+            {categories?.map((category) => (
               <motion.div
-                key={item.id}
+                key={category.id}
                 layout
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -200,19 +197,17 @@ export default function ItemsPage() {
               >
                 <Card className="mb-3">
                   <CardContent className="py-4 flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">{item.name}</p>
-                      {item.description && (
-                        <p className="text-sm text-muted-foreground">
-                          {item.description}
-                        </p>
+                    <div className="flex items-center gap-3">
+                      {category.icon && (
+                        <span className="text-2xl">{category.icon}</span>
                       )}
+                      <p className="font-medium">{category.name}</p>
                     </div>
                     <Button
                       variant="ghost"
                       size="icon"
                       disabled={deleteMutation.isPending}
-                      onClick={() => deleteMutation.mutate(item.id)}
+                      onClick={() => deleteMutation.mutate(category.id)}
                     >
                       <Trash2 className="w-4 h-4 text-muted-foreground hover:text-destructive" />
                     </Button>

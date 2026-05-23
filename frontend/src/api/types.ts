@@ -21,74 +21,74 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/items": {
+    "/api/categories": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** Read Items */
-        get: operations["read_items_api_items_get"];
+        /** Read Categories */
+        get: operations["read_categories_api_categories_get"];
         put?: never;
-        /** Create New Item */
-        post: operations["create_new_item_api_items_post"];
+        /** Create New Category */
+        post: operations["create_new_category_api_categories_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/items/{item_id}": {
+    "/api/categories/{category_id}": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** Read Item */
-        get: operations["read_item_api_items__item_id__get"];
+        /** Read Category */
+        get: operations["read_category_api_categories__category_id__get"];
         put?: never;
         post?: never;
-        /** Delete N Item */
-        delete: operations["delete_n_item_api_items__item_id__delete"];
+        /** Delete N Category */
+        delete: operations["delete_n_category_api_categories__category_id__delete"];
         options?: never;
         head?: never;
-        /** Update N Item */
-        patch: operations["update_n_item_api_items__item_id__patch"];
+        /** Update N Category */
+        patch: operations["update_n_category_api_categories__category_id__patch"];
         trace?: never;
     };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** CategoryCreate */
+        CategoryCreate: {
+            /** Name */
+            name: string;
+            /** Icon */
+            icon?: string | null;
+        };
+        /** CategoryRead */
+        CategoryRead: {
+            /** Name */
+            name: string;
+            /** Icon */
+            icon?: string | null;
+            /** Id */
+            id: number;
+        };
+        /** CategoryUpdate */
+        CategoryUpdate: {
+            /** Name */
+            name?: number | null;
+            /** Icon */
+            icon?: string | null;
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
-        };
-        /** ItemCreate */
-        ItemCreate: {
-            /** Name */
-            name: string;
-            /** Description */
-            description?: string | null;
-        };
-        /** ItemRead */
-        ItemRead: {
-            /** Name */
-            name: string;
-            /** Description */
-            description?: string | null;
-            /** Id */
-            id: number;
-        };
-        /** ItemUpdate */
-        ItemUpdate: {
-            /** Name */
-            name?: number | null;
-            /** Description */
-            description?: string | null;
         };
         /** ValidationError */
         ValidationError: {
@@ -134,7 +134,7 @@ export interface operations {
             };
         };
     };
-    read_items_api_items_get: {
+    read_categories_api_categories_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -149,12 +149,12 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ItemRead"][];
+                    "application/json": components["schemas"]["CategoryRead"][];
                 };
             };
         };
     };
-    create_new_item_api_items_post: {
+    create_new_category_api_categories_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -163,7 +163,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["ItemCreate"];
+                "application/json": components["schemas"]["CategoryCreate"];
             };
         };
         responses: {
@@ -173,7 +173,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ItemRead"];
+                    "application/json": components["schemas"]["CategoryRead"];
                 };
             };
             /** @description Validation Error */
@@ -187,12 +187,12 @@ export interface operations {
             };
         };
     };
-    read_item_api_items__item_id__get: {
+    read_category_api_categories__category_id__get: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                item_id: number;
+                category_id: number;
             };
             cookie?: never;
         };
@@ -204,7 +204,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ItemRead"];
+                    "application/json": components["schemas"]["CategoryRead"];
                 };
             };
             /** @description Validation Error */
@@ -218,12 +218,12 @@ export interface operations {
             };
         };
     };
-    delete_n_item_api_items__item_id__delete: {
+    delete_n_category_api_categories__category_id__delete: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                item_id: number;
+                category_id: number;
             };
             cookie?: never;
         };
@@ -247,18 +247,18 @@ export interface operations {
             };
         };
     };
-    update_n_item_api_items__item_id__patch: {
+    update_n_category_api_categories__category_id__patch: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                item_id: number;
+                category_id: number;
             };
             cookie?: never;
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["ItemUpdate"];
+                "application/json": components["schemas"]["CategoryUpdate"];
             };
         };
         responses: {
@@ -268,7 +268,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ItemRead"];
+                    "application/json": components["schemas"]["CategoryRead"];
                 };
             };
             /** @description Validation Error */
