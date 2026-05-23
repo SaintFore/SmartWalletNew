@@ -1,20 +1,53 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router";
-import { ArrowRight, Zap, Layers, Code, Route, Database, FileInput, Sparkles, Shield, Moon, Sun } from "lucide-react";
+import {
+  ArrowRight,
+  Shield,
+  Zap,
+  TrendingUp,
+  Wallet,
+  PieChart,
+  Smartphone,
+  Moon,
+  Sun,
+  ArrowUpRight,
+} from "lucide-react";
 import { useDarkMode } from "@/hooks/use-dark-mode";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 
-const smooth = { duration: 0.65, ease: [0.22, 1, 0.36, 1] as const };
+const ease = { duration: 0.4, ease: [0.22, 1, 0.36, 1] as const };
 
-const techStack = [
-  { name: "React 19", icon: Layers, color: "bg-sky-500" },
-  { name: "TypeScript", icon: Code, color: "bg-blue-600" },
-  { name: "Vite", icon: Zap, color: "bg-yellow-500" },
-  { name: "Tailwind CSS", icon: Sparkles, color: "bg-cyan-500" },
-  { name: "React Router", icon: Route, color: "bg-red-500" },
-  { name: "React Query", icon: Database, color: "bg-amber-500" },
-  { name: "React Hook Form", icon: FileInput, color: "bg-pink-500" },
-  { name: "shadcn/ui", icon: Shield, color: "bg-violet-600" },
+const features = [
+  {
+    icon: PieChart,
+    title: "Smart Categories",
+    description: "Organize transactions with intelligent categorization",
+  },
+  {
+    icon: TrendingUp,
+    title: "Track Progress",
+    description: "Visualize your financial health with real-time insights",
+  },
+  {
+    icon: Shield,
+    title: "Bank-Level Security",
+    description: "Your data is encrypted and protected at all times",
+  },
+  {
+    icon: Smartphone,
+    title: "Mobile First",
+    description: "Access your wallet anywhere, anytime on any device",
+  },
+];
+
+const stats = [
+  { label: "Active Users", value: "10K+", icon: Wallet },
+  { label: "Transactions", value: "1M+", icon: ArrowUpRight },
+  { label: "Categories", value: "50+", icon: PieChart },
+  { label: "Uptime", value: "99.9%", icon: Shield },
 ];
 
 export default function LandingPage() {
@@ -22,218 +55,209 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      {/* Nav */}
-      <motion.nav
-        initial={{ y: -100, opacity: 0 }}
+      {/* Header */}
+      <motion.header
+        initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.3, ...smooth }}
-        className="fixed top-6 left-1/2 -translate-x-1/2 z-50"
+        transition={{ delay: 0.1, ...ease }}
+        className="sticky top-0 z-40 border-b border-border/50 bg-background/80 backdrop-blur-lg"
       >
-        <motion.div
-          whileHover={{ scale: 1.02 }}
-          className="flex items-center gap-1 bg-background/90 backdrop-blur-xl rounded-full px-2 py-2 shadow-lg shadow-black/5 border border-border"
-        >
-          <Link
-            to="/"
-            className="px-5 py-2.5 text-sm font-medium text-foreground bg-accent rounded-full"
-          >
-            Home
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-2">
+            <Wallet className="size-5 text-primary" />
+            <span className="font-semibold text-lg">SmartWallet</span>
           </Link>
-          <Link
-            to="/categories"
-            className="px-5 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-full hover:bg-accent"
-          >
-            Categories
-          </Link>
-          <button
-            onClick={toggle}
-            className="p-2.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
-            aria-label="Toggle dark mode"
-          >
-            {dark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-          </button>
-        </motion.div>
-      </motion.nav>
+
+          <nav className="flex items-center gap-1">
+            <Link
+              to="/categories"
+              className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-accent"
+            >
+              Categories
+            </Link>
+            <Separator orientation="vertical" className="h-4" />
+            <button
+              onClick={toggle}
+              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+              aria-label="Toggle dark mode"
+            >
+              {dark ? <Sun className="size-4" /> : <Moon className="size-4" />}
+            </button>
+          </nav>
+        </div>
+      </motion.header>
 
       {/* Hero */}
-      <section className="relative pt-32 pb-16 md:pt-44 md:pb-24">
+      <section className="relative pt-24 pb-16 md:pt-32 md:pb-24">
         <div className="absolute inset-0 -z-10 overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.03] to-transparent" />
           <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/[0.05] rounded-full blur-3xl" />
-          <div className="absolute top-1/3 right-1/4 w-72 h-72 bg-chart-4/[0.05] rounded-full blur-3xl" />
+          <div className="absolute top-1/3 right-1/4 w-72 h-72 bg-emerald-500/[0.05] rounded-full blur-3xl" />
         </div>
 
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={smooth}
-            className="text-5xl md:text-7xl font-bold tracking-tight mb-6"
+            transition={ease}
           >
-            Your Project
-            <br />
-            <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-              Starts Here
-            </span>
+            <Badge variant="secondary" className="mb-6">
+              <Zap className="size-3.5" data-icon="inline-start" />
+              Smart Financial Management
+            </Badge>
           </motion.div>
 
-          <motion.p
-            initial={{ opacity: 0, y: 30 }}
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1, ...smooth }}
-            className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10"
+            transition={{ delay: 0.1, ...ease }}
+            className="text-4xl md:text-6xl font-semibold tracking-tight mb-6"
           >
-            A production-ready React + TypeScript template with routing, data
-            fetching, form validation, and a type-safe API client — all wired
-            up and ready to go.
+            Take Control of
+            <br />
+            <span className="text-primary">Your Finances</span>
+          </motion.h1>
+
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, ...ease }}
+            className="text-lg text-muted-foreground max-w-2xl mx-auto mb-10"
+          >
+            SmartWallet helps you track expenses, categorize transactions, and
+            achieve your financial goals with intelligent insights.
           </motion.p>
 
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, ...smooth }}
-            className="flex flex-col sm:flex-row gap-4 justify-center"
+            transition={{ delay: 0.3, ...ease }}
+            className="flex flex-col sm:flex-row gap-3 justify-center"
           >
-            <Button asChild>
+            <Button size="lg" asChild>
               <Link to="/categories">
-                View Categories
-                <ArrowRight className="w-4 h-4 ml-2" />
+                Get Started
+                <ArrowRight className="size-4" data-icon="inline-end" />
               </Link>
             </Button>
-            <Button variant="outline" asChild>
-              <a
-                href="https://github.com/SaintFore/vite-template-react"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                GitHub
-              </a>
+            <Button size="lg" variant="outline">
+              Learn More
             </Button>
           </motion.div>
         </div>
       </section>
 
-      {/* Tech Stack */}
-      <section className="py-16 md:py-24">
+      {/* Stats */}
+      <section className="py-16 bg-secondary/30">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={smooth}
-            className="text-center mb-12"
-          >
-            <h2 className="text-3xl font-bold mb-3">Tech Stack</h2>
-            <p className="text-muted-foreground">
-              Every dependency is actually used — no bloat
-            </p>
-          </motion.div>
-
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {techStack.map((tech, i) => (
+            {stats.map((stat, i) => (
               <motion.div
-                key={tech.name}
+                key={stat.label}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: i * 0.05, ...smooth }}
-                whileHover={{ y: -4 }}
-                className="group p-5 rounded-2xl bg-card border border-border/50 hover:border-border hover:shadow-lg transition-all"
+                transition={{ delay: i * 0.1, ...ease }}
               >
-                <div
-                  className={`w-10 h-10 ${tech.color} rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform`}
-                >
-                  <tech.icon className="w-5 h-5 text-white" />
-                </div>
-                <h3 className="font-semibold text-sm">{tech.name}</h3>
+                <Card>
+                  <CardContent className="p-6 text-center">
+                    <stat.icon className="size-6 text-primary mx-auto mb-3" />
+                    <p className="text-2xl font-semibold mb-1">{stat.value}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {stat.label}
+                    </p>
+                  </CardContent>
+                </Card>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Project Structure */}
-      <section className="py-16 md:py-24 bg-secondary/30">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* Features */}
+      <section className="py-16 md:py-24">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={smooth}
-            className="text-center mb-10"
+            transition={ease}
+            className="text-center mb-12"
           >
-            <h2 className="text-3xl font-bold mb-3">Project Structure</h2>
+            <h2 className="text-3xl font-semibold mb-3">
+              Why Choose SmartWallet?
+            </h2>
+            <p className="text-muted-foreground max-w-xl mx-auto">
+              Powerful features designed to simplify your financial life
+            </p>
           </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.1, ...smooth }}
-            className="bg-card rounded-2xl border border-border p-6 font-mono text-sm"
-          >
-            <pre className="text-foreground">
-{`src/
-├── api/          # openapi-fetch client + auto-generated types
-├── components/   # Reusable components
-│   └── ui/       # shadcn/ui components
-├── hooks/        # Custom hooks (queries, mutations, utils)
-├── lib/          # Utility functions
-├── pages/        # Route pages
-├── schemas/      # Zod validation schemas
-├── App.tsx       # Router config
-└── main.tsx      # Entry point + providers`}
-            </pre>
-          </motion.div>
+          <div className="grid md:grid-cols-2 gap-6">
+            {features.map((feature, i) => (
+              <motion.div
+                key={feature.title}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1, ...ease }}
+              >
+                <Card className="h-full hover:border-border hover:shadow-md transition-all">
+                  <CardContent className="p-6">
+                    <div className="flex items-start gap-4">
+                      <div className="size-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                        <feature.icon className="size-5 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-lg mb-2">
+                          {feature.title}
+                        </h3>
+                        <p className="text-muted-foreground text-sm">
+                          {feature.description}
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* Scripts */}
-      <section className="py-16 md:py-24">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* CTA */}
+      <section className="py-16 md:py-24 bg-secondary/30">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={smooth}
-            className="text-center mb-10"
+            transition={ease}
           >
-            <h2 className="text-3xl font-bold mb-3">Quick Start</h2>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="grid grid-cols-2 md:grid-cols-4 gap-4"
-          >
-            {[
-              { cmd: "pnpm dev", desc: "Dev server" },
-              { cmd: "pnpm build", desc: "Type check + build" },
-              { cmd: "pnpm lint", desc: "ESLint" },
-              { cmd: "pnpm gen:api", desc: "Regenerate API types" },
-            ].map((script) => (
-              <div
-                key={script.cmd}
-                className="p-4 rounded-xl bg-card border border-border/50 text-center"
-              >
-                <code className="text-sm font-medium text-primary">
-                  {script.cmd}
-                </code>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {script.desc}
-                </p>
-              </div>
-            ))}
+            <h2 className="text-3xl font-semibold mb-4">Ready to Start?</h2>
+            <p className="text-muted-foreground mb-8 max-w-xl mx-auto">
+              Join thousands of users who are already managing their finances
+              smarter.
+            </p>
+            <Button size="lg" asChild>
+              <Link to="/categories">
+                Start Managing Categories
+                <ArrowRight className="size-4" data-icon="inline-end" />
+              </Link>
+            </Button>
           </motion.div>
         </div>
       </section>
 
       {/* Footer */}
       <footer className="py-8 border-t border-border">
-        <div className="max-w-5xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4">
-          <span className="font-semibold">Vite Template React</span>
-          <p className="text-sm text-muted-foreground">Built with ❤️</p>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="flex items-center gap-2">
+            <Wallet className="size-4 text-primary" />
+            <span className="font-semibold">SmartWallet</span>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            © 2026 SmartWallet. All rights reserved.
+          </p>
         </div>
       </footer>
     </div>

@@ -31,9 +31,7 @@ def delete(category_id: int, session: Session) -> Category | None:
     return category
 
 
-def update(
-    category_id: int, category_in: CategoryUpdate, session: Session
-) -> Category | None:
+def update(category_id: int, category_in: CategoryUpdate, session: Session) -> Category | None:
     category = session.get(Category, category_id)
 
     if category is None:

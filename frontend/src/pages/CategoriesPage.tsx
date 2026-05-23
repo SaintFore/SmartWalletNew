@@ -1,13 +1,31 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Trash2, Package, Loader2, ArrowLeft } from "lucide-react";
+import {
+  Plus,
+  Trash2,
+  FolderOpen,
+  Loader2,
+  ArrowLeft,
+  Wallet,
+  PieChart,
+} from "lucide-react";
 import { Link } from "react-router";
-import { categoryCreateSchema, type CategoryCreateValues } from "@/schemas/category";
-import { useCategories, useCreateCategory, useDeleteCategory } from "@/hooks/use-categories";
+import {
+  categoryCreateSchema,
+  type CategoryCreateValues,
+} from "@/schemas/category";
+import {
+  useCategories,
+  useCreateCategory,
+  useDeleteCategory,
+} from "@/hooks/use-categories";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Card,
   CardContent,
@@ -16,7 +34,30 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-const smooth = { duration: 0.65, ease: [0.22, 1, 0.36, 1] as const };
+const ease = { duration: 0.4, ease: [0.22, 1, 0.36, 1] as const };
+
+function CategoriesPageSkeleton() {
+  return (
+    <div className="flex flex-col gap-4">
+      {Array.from({ length: 3 }).map((_, i) => (
+        <Card key={i}>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Skeleton className="size-10 rounded-lg" />
+                <div className="flex flex-col gap-1">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-3 w-16" />
+                </div>
+              </div>
+              <Skeleton className="size-8 rounded-md" />
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+}
 
 export default function CategoriesPage() {
   const { data: categories, isLoading, isError } = useCategories();
@@ -40,195 +81,220 @@ export default function CategoriesPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      {/* Nav */}
-      <motion.nav
-        initial={{ y: -100, opacity: 0 }}
+      {/* Header */}
+      <motion.header
+        initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.3, ...smooth }}
-        className="fixed top-6 left-1/2 -translate-x-1/2 z-50"
+        transition={{ delay: 0.1, ...ease }}
+        className="sticky top-0 z-40 border-b border-border/50 bg-background/80 backdrop-blur-lg"
       >
-        <motion.div
-          whileHover={{ scale: 1.02 }}
-          className="flex items-center gap-1 bg-background/90 backdrop-blur-xl rounded-full px-2 py-2 shadow-lg shadow-black/5 border border-border"
-        >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-2">
+            <Wallet className="size-5 text-primary" />
+            <span className="font-semibold text-lg">SmartWallet</span>
+          </Link>
+
           <Link
             to="/"
-            className="inline-flex items-center gap-1.5 px-5 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-full hover:bg-accent"
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-accent"
           >
-            <ArrowLeft className="w-3.5 h-3.5" />
-            Home
+            <ArrowLeft className="size-3.5" />
+            Back to Home
           </Link>
-          <Link
-            to="/categories"
-            className="px-5 py-2.5 text-sm font-medium text-foreground bg-accent rounded-full"
-          >
-            Categories
-          </Link>
-        </motion.div>
-      </motion.nav>
+        </div>
+      </motion.header>
 
-      <div className="max-w-2xl mx-auto px-4 pt-28 pb-16">
-        {/* Header */}
+      {/* Main Content */}
+      <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Page Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={smooth}
+          transition={ease}
           className="mb-8"
         >
-          <h1 className="text-3xl font-bold mb-2">Categories</h1>
-          <p className="text-muted-foreground">
-            Manage your transaction categories
-          </p>
+          <div className="flex items-center gap-3 mb-2">
+            <div className="size-10 rounded-lg bg-primary/10 flex items-center justify-center">
+              <PieChart className="size-5 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-semibold">Categories</h1>
+              <p className="text-sm text-muted-foreground">
+                Organize your transactions with smart categories
+              </p>
+            </div>
+          </div>
         </motion.div>
 
         {/* Create Form */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1, ...smooth }}
+          transition={{ delay: 0.1, ...ease }}
+          className="mb-8"
         >
-          <Card className="mb-8">
+          <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Add Category</CardTitle>
+              <CardTitle>Add New Category</CardTitle>
               <CardDescription>
-                Create a new category via <code>POST /api/categories</code>
+                Create a category to organize your transactions
               </CardDescription>
             </CardHeader>
             <CardContent>
               <form
                 onSubmit={handleSubmit(onSubmit)}
-                className="flex flex-col sm:flex-row gap-3"
+                className="flex flex-col gap-4"
               >
-                <div className="flex-1 flex flex-col gap-1.5">
-                  <Label htmlFor="name" className="sr-only">
-                    Name
-                  </Label>
-                  <Input
-                    id="name"
-                    placeholder="Category name"
-                    {...register("name")}
-                  />
-                  {errors.name && (
-                    <p className="text-sm text-destructive">
-                      {errors.name.message}
-                    </p>
-                  )}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor="name">Category Name</Label>
+                    <Input
+                      id="name"
+                      placeholder="e.g., Groceries, Entertainment"
+                      {...register("name")}
+                    />
+                    {errors.name && (
+                      <p className="text-sm text-destructive">
+                        {errors.name.message}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor="icon">Icon (optional)</Label>
+                    <Input
+                      id="icon"
+                      placeholder="e.g., 🛒, 🎮"
+                      {...register("icon")}
+                    />
+                  </div>
                 </div>
-                <div className="flex-1 flex flex-col gap-1.5">
-                  <Label htmlFor="icon" className="sr-only">
-                    Icon
-                  </Label>
-                  <Input
-                    id="icon"
-                    placeholder="Icon (emoji)"
-                    {...register("icon")}
-                  />
+                <div className="flex justify-end">
+                  <Button type="submit" disabled={createMutation.isPending}>
+                    {createMutation.isPending ? (
+                      <Loader2
+                        className="size-4 animate-spin"
+                        data-icon="inline-start"
+                      />
+                    ) : (
+                      <Plus className="size-4" data-icon="inline-start" />
+                    )}
+                    Add Category
+                  </Button>
                 </div>
-                <Button
-                  type="submit"
-                  disabled={createMutation.isPending}
-                  className="shrink-0"
-                >
-                  {createMutation.isPending ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Plus className="w-4 h-4" />
-                  )}
-                  Add
-                </Button>
               </form>
               {createMutation.isError && (
-                <p className="text-sm text-destructive mt-2">
-                  Failed to create category. Is the API running?
+                <p className="text-sm text-destructive mt-4">
+                  Failed to create category. Please check your connection and
+                  try again.
                 </p>
               )}
             </CardContent>
           </Card>
         </motion.div>
 
+        <Separator className="mb-8" />
+
         {/* Categories List */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, ...smooth }}
+          transition={{ delay: 0.2, ...ease }}
         >
-          {isLoading && (
-            <div className="flex items-center justify-center py-16 text-muted-foreground">
-              <Loader2 className="w-5 h-5 animate-spin mr-2" />
-              Loading categories...
-            </div>
-          )}
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-medium">Your Categories</h2>
+            {categories && (
+              <Badge variant="secondary">
+                {categories.length}{" "}
+                {categories.length === 1 ? "category" : "categories"}
+              </Badge>
+            )}
+          </div>
 
+          {/* Loading State */}
+          {isLoading && <CategoriesPageSkeleton />}
+
+          {/* Error State */}
           {isError && (
             <Card className="border-destructive/50">
-              <CardContent className="py-8 text-center">
+              <CardContent className="p-6 text-center">
                 <p className="text-destructive font-medium mb-1">
                   Failed to load categories
                 </p>
                 <p className="text-sm text-muted-foreground">
                   Make sure the API is running at{" "}
-                  <code>{import.meta.env.VITE_API_BASE_URL}</code>
+                  <code className="px-1.5 py-0.5 rounded bg-muted text-xs">
+                    {import.meta.env.VITE_API_BASE_URL}
+                  </code>
                 </p>
               </CardContent>
             </Card>
           )}
 
+          {/* Empty State */}
           {categories && categories.length === 0 && (
             <Card>
-              <CardContent className="py-12 text-center">
-                <Package className="w-10 h-10 text-muted-foreground/40 mx-auto mb-3" />
-                <p className="text-muted-foreground">No categories yet</p>
-                <p className="text-sm text-muted-foreground/60">
-                  Add one using the form above
+              <CardContent className="p-12 text-center">
+                <div className="size-12 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
+                  <FolderOpen className="size-6 text-muted-foreground" />
+                </div>
+                <h3 className="font-medium mb-1">No categories yet</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Create your first category to start organizing transactions.
                 </p>
               </CardContent>
             </Card>
           )}
 
+          {/* Categories Grid */}
           <AnimatePresence mode="popLayout">
-            {categories?.map((category) => (
-              <motion.div
-                key={category.id}
-                layout
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={smooth}
-              >
-                <Card className="mb-3">
-                  <CardContent className="py-4 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      {category.icon && (
-                        <span className="text-2xl">{category.icon}</span>
-                      )}
-                      <p className="font-medium">{category.name}</p>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      disabled={deleteMutation.isPending}
-                      onClick={() => deleteMutation.mutate(category.id)}
-                    >
-                      <Trash2 className="w-4 h-4 text-muted-foreground hover:text-destructive" />
-                    </Button>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
+            {categories && categories.length > 0 && (
+              <div className="flex flex-col gap-3">
+                {categories.map((category, i) => (
+                  <motion.div
+                    key={category.id}
+                    layout
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{ delay: i * 0.05, ...ease }}
+                  >
+                    <Card className="group hover:border-border hover:shadow-sm transition-all">
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            {category.icon ? (
+                              <span className="text-2xl">{category.icon}</span>
+                            ) : (
+                              <div className="size-10 rounded-lg bg-muted flex items-center justify-center">
+                                <FolderOpen className="size-5 text-muted-foreground" />
+                              </div>
+                            )}
+                            <div>
+                              <p className="font-medium">{category.name}</p>
+                              <p className="text-xs text-muted-foreground">
+                                ID: {category.id}
+                              </p>
+                            </div>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            disabled={deleteMutation.isPending}
+                            onClick={() => deleteMutation.mutate(category.id)}
+                            className="opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <Trash2 className="size-4 text-muted-foreground hover:text-destructive" />
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
+            )}
           </AnimatePresence>
         </motion.div>
-
-        {/* Tech note */}
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.4, ...smooth }}
-          className="text-center text-xs text-muted-foreground mt-8"
-        >
-          API types auto-generated by{" "}
-          <span className="font-medium">openapi-typescript</span>
-        </motion.p>
-      </div>
+      </main>
     </div>
   );
 }

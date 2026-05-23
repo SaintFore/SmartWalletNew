@@ -19,9 +19,7 @@ def read_categories(
 
 
 @router.get("/{category_id}", response_model=CategoryRead)
-def read_category(
-    category_id: int, session: Annotated[Session, Depends(get_session)]
-) -> Category:
+def read_category(category_id: int, session: Annotated[Session, Depends(get_session)]) -> Category:
     category = get_all(session, category_id)
     if not category:
         raise HTTPException(status_code=404, detail="category not found")
@@ -37,9 +35,7 @@ def create_new_category(
 
 
 @router.delete("/{category_id}", status_code=204)
-def delete_n_category(
-    category_id: int, session: Annotated[Session, Depends(get_session)]
-):
+def delete_n_category(category_id: int, session: Annotated[Session, Depends(get_session)]):
     category = delete(category_id, session)
     if not category:
         raise HTTPException(status_code=404, detail="category not found")
