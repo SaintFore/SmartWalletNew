@@ -8,6 +8,8 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
+    "format": "prettier . --wirte",
+    "typecheck": "tsc --noEmit",
     "gen:api": "openapi-typescript http://localhost:8000/openapi.json -o ./src/api/types.ts"
   },
   "dependencies": {
