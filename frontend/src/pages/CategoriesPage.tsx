@@ -9,6 +9,7 @@ import {
   ArrowLeft,
   Wallet,
   PieChart,
+  Search,
 } from "lucide-react";
 import { Link } from "react-router";
 import {
@@ -38,22 +39,19 @@ const ease = { duration: 0.4, ease: [0.22, 1, 0.36, 1] as const };
 
 function CategoriesPageSkeleton() {
   return (
-    <div className="flex flex-col gap-4">
-      {Array.from({ length: 3 }).map((_, i) => (
-        <Card key={i}>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Skeleton className="size-10 rounded-lg" />
-                <div className="flex flex-col gap-1">
-                  <Skeleton className="h-4 w-24" />
-                  <Skeleton className="h-3 w-16" />
-                </div>
-              </div>
-              <Skeleton className="size-8 rounded-md" />
-            </div>
-          </CardContent>
-        </Card>
+    <div className="flex flex-col gap-3">
+      {Array.from({ length: 4 }).map((_, i) => (
+        <div
+          key={i}
+          className="flex items-center gap-4 p-4 rounded-xl border border-border/50 bg-card"
+        >
+          <Skeleton className="size-12 rounded-lg" />
+          <div className="flex-1 flex flex-col gap-2">
+            <Skeleton className="h-4 w-32" />
+            <Skeleton className="h-3 w-20" />
+          </div>
+          <Skeleton className="size-8 rounded-md" />
+        </div>
       ))}
     </div>
   );
@@ -105,7 +103,7 @@ export default function CategoriesPage() {
       </motion.header>
 
       {/* Main Content */}
-      <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Page Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -113,16 +111,22 @@ export default function CategoriesPage() {
           transition={ease}
           className="mb-8"
         >
-          <div className="flex items-center gap-3 mb-2">
-            <div className="size-10 rounded-lg bg-primary/10 flex items-center justify-center">
-              <PieChart className="size-5 text-primary" />
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="size-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                <PieChart className="size-6 text-primary" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-semibold">Categories</h1>
+                <p className="text-sm text-muted-foreground">
+                  Organize your transactions with smart categories
+                </p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-2xl font-semibold">Categories</h1>
-              <p className="text-sm text-muted-foreground">
-                Organize your transactions with smart categories
-              </p>
-            </div>
+            <Badge variant="secondary" className="w-fit">
+              {categories?.length || 0}{" "}
+              {categories?.length === 1 ? "category" : "categories"}
+            </Badge>
           </div>
         </motion.div>
 
@@ -135,7 +139,10 @@ export default function CategoriesPage() {
         >
           <Card>
             <CardHeader>
-              <CardTitle>Add New Category</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <Plus className="size-5" />
+                Add New Category
+              </CardTitle>
               <CardDescription>
                 Create a category to organize your transactions
               </CardDescription>
@@ -200,14 +207,18 @@ export default function CategoriesPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, ...ease }}
         >
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-medium">Your Categories</h2>
-            {categories && (
-              <Badge variant="secondary">
-                {categories.length}{" "}
-                {categories.length === 1 ? "category" : "categories"}
-              </Badge>
-            )}
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-lg font-medium">Your Categories</h2>
+            <div className="flex items-center gap-2">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search categories..."
+                  className="pl-9 w-64"
+                  disabled
+                />
+              </div>
+            </div>
           </div>
 
           {/* Loading State */}
@@ -234,13 +245,21 @@ export default function CategoriesPage() {
           {categories && categories.length === 0 && (
             <Card>
               <CardContent className="p-12 text-center">
-                <div className="size-12 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
-                  <FolderOpen className="size-6 text-muted-foreground" />
+                <div className="size-16 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4">
+                  <FolderOpen className="size-8 text-muted-foreground" />
                 </div>
-                <h3 className="font-medium mb-1">No categories yet</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Create your first category to start organizing transactions.
+                <h3 className="font-medium text-lg mb-2">No categories yet</h3>
+                <p className="text-sm text-muted-foreground mb-6 max-w-sm mx-auto">
+                  Create your first category to start organizing your
+                  transactions.
                 </p>
+                <Button
+                  variant="outline"
+                  onClick={() => document.getElementById("name")?.focus()}
+                >
+                  <Plus className="size-4" data-icon="inline-start" />
+                  Create First Category
+                </Button>
               </CardContent>
             </Card>
           )}
@@ -248,7 +267,7 @@ export default function CategoriesPage() {
           {/* Categories Grid */}
           <AnimatePresence mode="popLayout">
             {categories && categories.length > 0 && (
-              <div className="flex flex-col gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {categories.map((category, i) => (
                   <motion.div
                     key={category.id}
@@ -258,19 +277,23 @@ export default function CategoriesPage() {
                     exit={{ opacity: 0, scale: 0.95 }}
                     transition={{ delay: i * 0.05, ...ease }}
                   >
-                    <Card className="group hover:border-border hover:shadow-sm transition-all">
-                      <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
+                    <Card className="group hover:border-border hover:shadow-md transition-all h-full">
+                      <CardContent className="p-5">
+                        <div className="flex items-start justify-between mb-4">
                           <div className="flex items-center gap-3">
                             {category.icon ? (
-                              <span className="text-2xl">{category.icon}</span>
+                              <div className="size-12 rounded-xl bg-primary/10 flex items-center justify-center text-2xl">
+                                {category.icon}
+                              </div>
                             ) : (
-                              <div className="size-10 rounded-lg bg-muted flex items-center justify-center">
-                                <FolderOpen className="size-5 text-muted-foreground" />
+                              <div className="size-12 rounded-xl bg-muted flex items-center justify-center">
+                                <FolderOpen className="size-6 text-muted-foreground" />
                               </div>
                             )}
                             <div>
-                              <p className="font-medium">{category.name}</p>
+                              <p className="font-medium text-base">
+                                {category.name}
+                              </p>
                               <p className="text-xs text-muted-foreground">
                                 ID: {category.id}
                               </p>
@@ -281,10 +304,15 @@ export default function CategoriesPage() {
                             size="icon"
                             disabled={deleteMutation.isPending}
                             onClick={() => deleteMutation.mutate(category.id)}
-                            className="opacity-0 group-hover:opacity-100 transition-opacity"
+                            className="opacity-0 group-hover:opacity-100 transition-opacity size-8"
                           >
                             <Trash2 className="size-4 text-muted-foreground hover:text-destructive" />
                           </Button>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="text-xs">
+                            Category
+                          </Badge>
                         </div>
                       </CardContent>
                     </Card>
