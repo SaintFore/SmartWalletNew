@@ -4,12 +4,14 @@ from alembic import context
 from sqlalchemy import engine_from_config, pool
 from sqlmodel import SQLModel
 
+import app.models  # noqa: F401 - 必须导入 models 才能让 Alembic autogenerate 检测到表
 from app.core.config import settings
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
 
+# 强制覆盖 alembic.ini 中的 "sqlalchemy.url" 配置
 config.set_main_option("sqlalchemy.url", settings.database_url)
 
 # Interpret the config file for Python logging.
