@@ -1,22 +1,6 @@
 import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { motion, AnimatePresence } from "framer-motion";
-import {
-  Plus,
-  Trash2,
-  Loader2,
-  ArrowUpRight,
-  ArrowDownRight,
-  TrendingUp,
-  TrendingDown,
-  Calendar,
-  DollarSign,
-} from "lucide-react";
-import {
-  transactionCreateSchema,
-  type TransactionCreateValues,
-} from "@/schemas/transaction";
+import { motion } from "framer-motion";
+import { ArrowUpRight, ArrowDownRight, DollarSign, Zap } from "lucide-react";
 import {
   useTransactions,
   useCreateTransaction,
@@ -25,55 +9,27 @@ import {
 } from "@/hooks/use-transactions";
 import { useCategories } from "@/hooks/use-categories";
 import { AppLayout } from "@/components/AppLayout";
+import {
+  SummaryCards,
+  TransactionList,
+  TransactionForm,
+} from "@/components/shared";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import type { TransactionCreateValues } from "@/schemas/transaction";
 
 const ease = { duration: 0.4, ease: [0.22, 1, 0.36, 1] as const };
 
-function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat("zh-CN", {
-    style: "currency",
-    currency: "CNY",
-  }).format(amount);
-}
-
-function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString("zh-CN", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
+function quickAdd(name: string, categoryId: number, createMutation: any) {
+  const now = new Date();
+  createMutation.mutate({
+    name,
+    amount: 0,
+    type: "expense",
+    category_id: categoryId,
+    date: now.toISOString().split("T")[0],
   });
-}
-
-function TransactionsPageSkeleton() {
-  return (
-    <div className="flex flex-col gap-3">
-      {Array.from({ length: 5 }).map((_, i) => (
-        <div
-          key={i}
-          className="flex items-center gap-4 p-4 rounded-xl border border-border/50 bg-card"
-        >
-          <Skeleton className="size-12 rounded-lg" />
-          <div className="flex-1 flex flex-col gap-2">
-            <Skeleton className="h-4 w-32" />
-            <Skeleton className="h-3 w-20" />
-          </div>
-          <Skeleton className="h-6 w-20" />
-        </div>
-      ))}
-    </div>
-  );
 }
 
 export default function TransactionsPage() {
@@ -93,27 +49,12 @@ export default function TransactionsPage() {
     now.getMonth() + 1,
   );
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    reset,
-    setValue,
-    watch,
-  } = useForm<TransactionCreateValues>({
-    resolver: zodResolver(transactionCreateSchema),
-    defaultValues: {
-      type: "expense",
-      date: now.toISOString().split("T")[0],
-    },
-  });
+  function handleSubmit(data: TransactionCreateValues) {
+    createMutation.mutate(data);
+  }
 
-  const selectedType = watch("type");
-
-  function onSubmit(data: TransactionCreateValues) {
-    createMutation.mutate(data, {
-      onSuccess: () => reset(),
-    });
+  function handleDelete(id: number) {
+    deleteMutation.mutate(id);
   }
 
   return (
@@ -124,7 +65,7 @@ export default function TransactionsPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={ease}
-          className="mb-8"
+          className="mb-6"
         >
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center gap-3">
@@ -150,201 +91,60 @@ export default function TransactionsPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1, ...ease }}
-            className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8"
+            className="mb-6"
           >
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="size-10 rounded-lg bg-emerald-500/10 flex items-center justify-center">
-                    <TrendingUp className="size-5 text-emerald-500" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Income</p>
-                    <p className="text-xl font-semibold text-emerald-500">
-                      {formatCurrency(summary.total_income)}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="size-10 rounded-lg bg-red-500/10 flex items-center justify-center">
-                    <TrendingDown className="size-5 text-red-500" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Expense</p>
-                    <p className="text-xl font-semibold text-red-500">
-                      {formatCurrency(summary.total_expense)}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="size-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <DollarSign className="size-5 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Net</p>
-                    <p
-                      className={`text-xl font-semibold ${
-                        summary.net >= 0 ? "text-emerald-500" : "text-red-500"
-                      }`}
-                    >
-                      {formatCurrency(summary.net)}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <SummaryCards
+              totalIncome={summary.total_income}
+              totalExpense={summary.total_expense}
+              net={summary.net}
+            />
           </motion.div>
         )}
 
-        {/* Create Form */}
+        {/* Quick Add Buttons */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15, ...ease }}
+          className="mb-6"
+        >
+          <div className="flex items-center gap-2 mb-3">
+            <Zap className="size-4 text-primary" />
+            <span className="text-sm font-medium">Quick Add</span>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {categories?.slice(0, 6).map((cat) => (
+              <Button
+                key={cat.id}
+                variant="outline"
+                size="sm"
+                onClick={() => quickAdd(cat.name, cat.id, createMutation)}
+                disabled={createMutation.isPending}
+              >
+                {cat.icon} {cat.name}
+              </Button>
+            ))}
+          </div>
+        </motion.div>
+
+        <Separator className="mb-6" />
+
+        {/* Transaction Form */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, ...ease }}
           className="mb-8"
         >
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Plus className="size-5" />
-                Add Transaction
-              </CardTitle>
-              <CardDescription>Record a new income or expense</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form
-                onSubmit={handleSubmit(onSubmit)}
-                className="flex flex-col gap-4"
-              >
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="flex flex-col gap-2">
-                    <Label htmlFor="name">Description</Label>
-                    <Input
-                      id="name"
-                      placeholder="e.g., Lunch, Salary"
-                      {...register("name")}
-                    />
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <Label htmlFor="amount">Amount</Label>
-                    <Input
-                      id="amount"
-                      type="number"
-                      step="0.01"
-                      placeholder="0.00"
-                      {...register("amount", { valueAsNumber: true })}
-                    />
-                    {errors.amount && (
-                      <p className="text-sm text-destructive">
-                        {errors.amount.message}
-                      </p>
-                    )}
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <Label>Type</Label>
-                    <div className="flex gap-2">
-                      <Button
-                        type="button"
-                        variant={
-                          selectedType === "expense" ? "default" : "outline"
-                        }
-                        className="flex-1"
-                        onClick={() => setValue("type", "expense")}
-                      >
-                        <ArrowDownRight
-                          className="size-4"
-                          data-icon="inline-start"
-                        />
-                        Expense
-                      </Button>
-                      <Button
-                        type="button"
-                        variant={
-                          selectedType === "income" ? "default" : "outline"
-                        }
-                        className="flex-1"
-                        onClick={() => setValue("type", "income")}
-                      >
-                        <ArrowUpRight
-                          className="size-4"
-                          data-icon="inline-start"
-                        />
-                        Income
-                      </Button>
-                    </div>
-                    <input type="hidden" {...register("type")} />
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <Label htmlFor="category_id">Category</Label>
-                    <select
-                      id="category_id"
-                      {...register("category_id", { valueAsNumber: true })}
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                      <option value="">Select category</option>
-                      {categories?.map((cat) => (
-                        <option key={cat.id} value={cat.id}>
-                          {cat.icon} {cat.name}
-                        </option>
-                      ))}
-                    </select>
-                    {errors.category_id && (
-                      <p className="text-sm text-destructive">
-                        {errors.category_id.message}
-                      </p>
-                    )}
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <Label htmlFor="date">Date</Label>
-                    <Input id="date" type="date" {...register("date")} />
-                    {errors.date && (
-                      <p className="text-sm text-destructive">
-                        {errors.date.message}
-                      </p>
-                    )}
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <Label htmlFor="description">Notes (optional)</Label>
-                    <Input
-                      id="description"
-                      placeholder="Additional notes"
-                      {...register("description")}
-                    />
-                  </div>
-                </div>
-                <div className="flex justify-end">
-                  <Button type="submit" disabled={createMutation.isPending}>
-                    {createMutation.isPending ? (
-                      <Loader2
-                        className="size-4 animate-spin"
-                        data-icon="inline-start"
-                      />
-                    ) : (
-                      <Plus className="size-4" data-icon="inline-start" />
-                    )}
-                    Add Transaction
-                  </Button>
-                </div>
-              </form>
-              {createMutation.isError && (
-                <p className="text-sm text-destructive mt-4">
-                  Failed to create transaction. Please check your connection and
-                  try again.
-                </p>
-              )}
-            </CardContent>
-          </Card>
+          <TransactionForm
+            categories={categories || []}
+            onSubmit={handleSubmit}
+            isPending={createMutation.isPending}
+            isError={createMutation.isError}
+          />
         </motion.div>
 
-        <Separator className="mb-8" />
+        <Separator className="mb-6" />
 
         {/* Transactions List */}
         <motion.div
@@ -352,7 +152,7 @@ export default function TransactionsPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3, ...ease }}
         >
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-medium">Recent Transactions</h2>
             <div className="flex gap-2">
               <Button
@@ -381,120 +181,14 @@ export default function TransactionsPage() {
             </div>
           </div>
 
-          {isLoading && <TransactionsPageSkeleton />}
-
-          {isError && (
-            <Card className="border-destructive/50">
-              <CardContent className="p-6 text-center">
-                <p className="text-destructive font-medium mb-1">
-                  Failed to load transactions
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Make sure the API is running at{" "}
-                  <code className="px-1.5 py-0.5 rounded bg-muted text-xs">
-                    {import.meta.env.VITE_API_BASE_URL}
-                  </code>
-                </p>
-              </CardContent>
-            </Card>
-          )}
-
-          {transactions && transactions.length === 0 && (
-            <Card>
-              <CardContent className="p-12 text-center">
-                <div className="size-16 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4">
-                  <Calendar className="size-8 text-muted-foreground" />
-                </div>
-                <h3 className="font-medium text-lg mb-2">
-                  No transactions yet
-                </h3>
-                <p className="text-sm text-muted-foreground mb-6 max-w-sm mx-auto">
-                  Start tracking your finances by adding your first transaction.
-                </p>
-              </CardContent>
-            </Card>
-          )}
-
-          <AnimatePresence mode="popLayout">
-            {transactions && transactions.length > 0 && (
-              <div className="flex flex-col gap-3">
-                {transactions.map((transaction, i) => {
-                  const category = categories?.find(
-                    (c) => c.id === transaction.category_id,
-                  );
-                  return (
-                    <motion.div
-                      key={transaction.id}
-                      layout
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.95 }}
-                      transition={{ delay: i * 0.05, ...ease }}
-                    >
-                      <Card className="group hover:border-border hover:shadow-sm transition-all">
-                        <CardContent className="p-4">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                              <div
-                                className={`size-12 rounded-xl flex items-center justify-center ${
-                                  transaction.type === "income"
-                                    ? "bg-emerald-500/10"
-                                    : "bg-red-500/10"
-                                }`}
-                              >
-                                {category?.icon ? (
-                                  <span className="text-2xl">
-                                    {category.icon}
-                                  </span>
-                                ) : transaction.type === "income" ? (
-                                  <ArrowUpRight className="size-6 text-emerald-500" />
-                                ) : (
-                                  <ArrowDownRight className="size-6 text-red-500" />
-                                )}
-                              </div>
-                              <div>
-                                <p className="font-medium">
-                                  {transaction.name || "Untitled"}
-                                </p>
-                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                  <span>{category?.name || "Unknown"}</span>
-                                  <span>•</span>
-                                  <span>{formatDate(transaction.date)}</span>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-3">
-                              <p
-                                className={`font-semibold ${
-                                  transaction.type === "income"
-                                    ? "text-emerald-500"
-                                    : "text-red-500"
-                                }`}
-                              >
-                                {transaction.type === "income" ? "+" : "-"}
-                                {formatCurrency(transaction.amount)}
-                              </p>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                disabled={deleteMutation.isPending}
-                                onClick={() =>
-                                  deleteMutation.mutate(transaction.id)
-                                }
-                                className="opacity-0 group-hover:opacity-100 transition-opacity size-8"
-                              >
-                                <Trash2 className="size-4 text-muted-foreground hover:text-destructive" />
-                              </Button>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </motion.div>
-                  );
-                })}
-              </div>
-            )}
-          </AnimatePresence>
+          <TransactionList
+            transactions={transactions || []}
+            categories={categories || []}
+            isLoading={isLoading}
+            isError={isError}
+            onDelete={handleDelete}
+            isDeleting={deleteMutation.isPending}
+          />
         </motion.div>
       </div>
     </AppLayout>
