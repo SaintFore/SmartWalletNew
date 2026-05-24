@@ -26,9 +26,14 @@ export function AppSidebar() {
   return (
     <Sidebar>
       <SidebarHeader>
-        <div className="flex items-center gap-2 px-4 py-2">
-          <Wallet className="size-5 text-primary" />
-          <span className="font-semibold text-lg">SmartWallet</span>
+        <div className="flex items-center gap-3 px-4 py-3">
+          <div className="rounded-2xl bg-primary/10 p-2 text-primary shadow-inner">
+            <Wallet className="size-5" />
+          </div>
+          <div>
+            <span className="font-semibold text-lg leading-none">SmartWallet</span>
+            <p className="text-xs text-muted-foreground">Spend with clarity</p>
+          </div>
         </div>
       </SidebarHeader>
       <SidebarContent>
@@ -40,7 +45,7 @@ export function AppSidebar() {
                 const isActive = location.pathname === item.path;
                 return (
                   <SidebarMenuItem key={item.path}>
-                    <SidebarMenuButton asChild isActive={isActive}>
+                    <SidebarMenuButton asChild isActive={isActive} className="h-10 rounded-xl">
                       <Link to={item.path}>
                         <item.icon className="size-4" />
                         <span>{item.label}</span>
@@ -54,8 +59,8 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
-        <div className="px-4 py-2 text-xs text-muted-foreground">
-          © 2026 SmartWallet
+        <div className="mx-2 rounded-2xl border border-sidebar-border bg-sidebar-accent/60 px-3 py-3 text-xs text-muted-foreground">
+          Built for clear daily money decisions.
         </div>
       </SidebarFooter>
     </Sidebar>

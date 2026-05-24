@@ -91,23 +91,23 @@ export function CategoryList({
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ delay: i * 0.05, ...ease }}
           >
-            <Card className="group hover:border-border hover:shadow-md transition-all h-full">
-              <CardContent className="p-4">
+            <Card className="group h-full overflow-hidden border-border/70 bg-card/80 shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/25 hover:shadow-lg hover:shadow-primary/5">
+              <CardContent className="p-5">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
                     {category.icon ? (
-                      <div className="size-12 rounded-xl bg-primary/10 flex items-center justify-center text-2xl">
+                      <div className="size-14 rounded-2xl bg-primary/10 flex items-center justify-center text-3xl shadow-inner">
                         {category.icon}
                       </div>
                     ) : (
-                      <div className="size-12 rounded-xl bg-muted flex items-center justify-center">
+                      <div className="size-14 rounded-2xl bg-muted flex items-center justify-center shadow-inner">
                         <FolderOpen className="size-6 text-muted-foreground" />
                       </div>
                     )}
                     <div>
                       <p className="font-medium">{category.name}</p>
                       <p className="text-xs text-muted-foreground">
-                        ID: {category.id}
+                        Personal bucket
                       </p>
                     </div>
                   </div>

@@ -13,6 +13,7 @@ interface Transaction {
   type: string;
   category_id: number;
   date: string;
+  description?: string | null;
 }
 
 interface Category {
@@ -105,7 +106,7 @@ export function TransactionList({
   }
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-3">
       <AnimatePresence mode="popLayout">
         {transactions.map((transaction, i) => {
           const category = categories.find(
@@ -120,15 +121,15 @@ export function TransactionList({
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ delay: i * 0.03, ...ease }}
             >
-              <Card className="group hover:border-border hover:shadow-sm transition-all">
-                <CardContent className="p-3">
+              <Card className="group overflow-hidden border-border/70 bg-card/80 shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/25 hover:shadow-lg hover:shadow-primary/5">
+                <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div
-                        className={`size-10 rounded-lg flex items-center justify-center ${
+                        className={`size-11 rounded-2xl flex items-center justify-center shadow-inner ${
                           transaction.type === "income"
-                            ? "bg-emerald-500/10"
-                            : "bg-red-500/10"
+                            ? "bg-emerald-500/15"
+                            : "bg-red-500/15"
                         }`}
                       >
                         {category?.icon ? (
@@ -140,17 +141,18 @@ export function TransactionList({
                         )}
                       </div>
                       <div>
-                        <p className="font-medium text-sm">
+                        <p className="font-medium">
                           {transaction.name || category?.name || "Untitled"}
                         </p>
                         <p className="text-xs text-muted-foreground">
                           {formatDate(transaction.date)}
+                          {transaction.description ? ` · ${transaction.description}` : ""}
                         </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
                       <p
-                        className={`font-semibold ${
+                        className={`font-semibold tracking-tight ${
                           transaction.type === "income"
                             ? "text-emerald-500"
                             : "text-red-500"

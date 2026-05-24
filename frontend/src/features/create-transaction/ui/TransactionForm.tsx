@@ -85,20 +85,31 @@ export function TransactionForm({
   }
 
   return (
-    <Card>
-      <CardContent className="p-4">
+    <Card className="overflow-hidden border-primary/15 bg-card/85 shadow-xl shadow-primary/5 backdrop-blur">
+      <CardContent className="p-5 sm:p-6">
+        <div className="mb-5 flex items-center justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-semibold tracking-tight">Add transaction</h2>
+            <p className="text-sm text-muted-foreground">Type amount, name, category, then press Enter to save.</p>
+          </div>
+          <div className="rounded-2xl bg-primary/10 p-2 text-primary">
+            <Plus className="size-5" />
+          </div>
+        </div>
         <form
           onSubmit={handleSubmit(handleFormSubmit)}
           className="flex flex-col gap-4"
         >
-          {/* Main Row: Amount + Category + Submit */}
-          <div className="flex gap-3">
+          {/* Main Row: Amount + Name + Category + Submit */}
+          <div className="grid gap-3 lg:grid-cols-[minmax(8rem,0.75fr)_minmax(12rem,1.25fr)_minmax(10rem,1fr)_auto]">
             <div className="flex-1">
               <Input
                 type="number"
                 step="0.01"
                 placeholder="0.00"
-                className="text-lg font-semibold"
+                aria-label="Amount"
+                autoFocus
+                className="h-12 text-xl font-semibold"
                 {...register("amount", { valueAsNumber: true })}
               />
               {errors.amount && (
@@ -109,9 +120,19 @@ export function TransactionForm({
             </div>
 
             <div className="flex-1">
+              <Input
+                id="name"
+                placeholder="Name, e.g. KFC lunch"
+                aria-label="Name"
+                className="h-12"
+                {...register("name")}
+              />
+            </div>
+
+            <div className="flex-1">
               <select
                 {...register("category_id", { valueAsNumber: true })}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                className="flex h-12 w-full rounded-xl border border-input bg-background/80 px-3 py-2 text-sm shadow-sm ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               >
                 <option value="">Select category</option>
                 {categories.map((cat) => (
@@ -127,7 +148,7 @@ export function TransactionForm({
               )}
             </div>
 
-            <Button type="submit" disabled={isPending} className="shrink-0">
+            <Button type="submit" disabled={isPending} className="h-12 shrink-0 px-6">
               {isPending ? (
                 <Loader2 className="size-4 animate-spin" />
               ) : (
@@ -138,12 +159,12 @@ export function TransactionForm({
           </div>
 
           {/* Type Toggle */}
-          <div className="flex gap-2">
+          <div className="grid grid-cols-2 gap-2 rounded-2xl bg-muted/70 p-1">
             <Button
               type="button"
-              variant={selectedType === "expense" ? "default" : "outline"}
+              variant={selectedType === "expense" ? "default" : "ghost"}
               size="sm"
-              className="flex-1"
+              className="h-10"
               onClick={() => setValue("type", "expense")}
             >
               <ArrowDownRight className="size-3" data-icon="inline-start" />
@@ -151,9 +172,9 @@ export function TransactionForm({
             </Button>
             <Button
               type="button"
-              variant={selectedType === "income" ? "default" : "outline"}
+              variant={selectedType === "income" ? "default" : "ghost"}
               size="sm"
-              className="flex-1"
+              className="h-10"
               onClick={() => setValue("type", "income")}
             >
               <ArrowUpRight className="size-3" data-icon="inline-start" />
@@ -195,16 +216,6 @@ export function TransactionForm({
               >
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
                   <div className="flex flex-col gap-1.5">
-                    <Label htmlFor="name" className="text-xs">
-                      Description
-                    </Label>
-                    <Input
-                      id="name"
-                      placeholder="e.g., Lunch at KFC"
-                      {...register("name")}
-                    />
-                  </div>
-                  <div className="flex flex-col gap-1.5">
                     <Label htmlFor="date" className="text-xs">
                       Date
                     </Label>
@@ -212,11 +223,11 @@ export function TransactionForm({
                   </div>
                   <div className="flex flex-col gap-1.5 sm:col-span-2">
                     <Label htmlFor="description" className="text-xs">
-                      Notes
+                      Description
                     </Label>
                     <Input
                       id="description"
-                      placeholder="Optional notes"
+                      placeholder="Optional context"
                       {...register("description")}
                     />
                   </div>

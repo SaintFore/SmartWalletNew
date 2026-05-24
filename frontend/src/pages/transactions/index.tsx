@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowUpRight, ArrowDownRight, DollarSign, Zap } from "lucide-react";
+import { ArrowUpRight, ArrowDownRight, DollarSign } from "lucide-react";
 import {
   useMonthlySummary,
   useTransactions,
@@ -21,20 +21,6 @@ import { Separator } from "@/shared/ui/separator";
 
 const ease = { duration: 0.4, ease: [0.22, 1, 0.36, 1] as const };
 
-function quickAdd(
-  name: string,
-  categoryId: number,
-  createTransaction: (data: TransactionCreateValues) => void,
-) {
-  const now = new Date();
-  createTransaction({
-    name,
-    amount: 0,
-    type: "expense",
-    category_id: categoryId,
-    date: now.toISOString().split("T")[0],
-  });
-}
 
 export default function TransactionsPage() {
   const [typeFilter, setTypeFilter] = useState<string | undefined>(undefined);
@@ -105,39 +91,12 @@ export default function TransactionsPage() {
           </motion.div>
         )}
 
-        {/* Quick Add Buttons */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15, ...ease }}
-          className="mb-6"
-        >
-          <div className="flex items-center gap-2 mb-3">
-            <Zap className="size-4 text-primary" />
-            <span className="text-sm font-medium">Quick Add</span>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {categories?.slice(0, 6).map((cat) => (
-              <Button
-                key={cat.id}
-                variant="outline"
-                size="sm"
-                onClick={() => quickAdd(cat.name, cat.id, createMutation.mutate)}
-                disabled={createMutation.isPending}
-              >
-                {cat.icon} {cat.name}
-              </Button>
-            ))}
-          </div>
-        </motion.div>
-
-        <Separator className="mb-6" />
 
         {/* Transaction Form */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, ...ease }}
+          transition={{ delay: 0.15, ...ease }}
           className="mb-8"
         >
           <TransactionForm

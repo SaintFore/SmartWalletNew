@@ -45,18 +45,23 @@ export default function LandingPage() {
   );
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,var(--accent),transparent_32rem),linear-gradient(180deg,var(--background),var(--secondary))] text-foreground">
       {/* Header */}
       <motion.header
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.1, ...ease }}
-        className="sticky top-0 z-40 border-b border-border/50 bg-background/80 backdrop-blur-lg"
+        className="sticky top-0 z-40 border-b border-border/60 bg-background/75 backdrop-blur-xl"
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2">
-            <Wallet className="size-5 text-primary" />
-            <span className="font-semibold text-lg">SmartWallet</span>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-3">
+            <div className="rounded-2xl bg-primary/10 p-2 text-primary shadow-inner">
+              <Wallet className="size-5" />
+            </div>
+            <div>
+              <span className="font-semibold text-lg leading-none">SmartWallet</span>
+              <p className="text-xs text-muted-foreground">Spend with clarity</p>
+            </div>
           </Link>
 
           <nav className="flex items-center gap-1">
@@ -66,10 +71,13 @@ export default function LandingPage() {
             <Button variant="ghost" asChild>
               <Link to="/transactions">Transactions</Link>
             </Button>
+            <Button variant="ghost" asChild>
+              <Link to="/analytics">Analytics</Link>
+            </Button>
             <Separator orientation="vertical" className="h-4" />
             <button
               onClick={toggle}
-              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+              className="p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
               aria-label="Toggle dark mode"
             >
               {dark ? <Sun className="size-4" /> : <Moon className="size-4" />}
