@@ -6,11 +6,13 @@ from sqlmodel import Session
 from app.db.session import get_session
 from app.models.transaction import Transaction
 from app.schemas.transaction import (
+    QuickTransactionCreate,
     TransactionCreate,
     TransactionRead,
     TransactionSummary,
     TransactionUpdate,
 )
+from app.services.transaction_parser import TransactionParseError, parse_quick_transaction
 from app.services.transaction_service import (
     create,
     delete,
@@ -53,6 +55,18 @@ def create_transaction(
     session: Annotated[Session, Depends(get_session)],
 ) -> Transaction:
     """创建新交易。"""
+    return create(transaction_in, session)
+
+@router.post("/quick", response_model=TransactionRead)
+def create_quick_transaction(
+    quick_in: QuickTransactionCreate,
+    session: Annotated[Session, Depends(get_session)],
+) -> Transaction:
+    """使用自然语言快速创建交易；配置 AI 时优先使用 AI 解析。"""
+    try:
+        transaction_in = parse_quick_transaction(quick_in, session)
+    except TransactionParseError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
     return create(transaction_in, session)
 
 

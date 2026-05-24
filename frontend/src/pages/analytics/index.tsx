@@ -11,7 +11,7 @@ import {
 import { useMonthlySummary } from "@/entities/transaction";
 import { useCategories } from "@/entities/category";
 import { AppLayout } from "@/widgets/app-layout";
-import { PieChart, BarChart } from "@/widgets/charts";
+import { BarChart, LineChart, PieChart } from "@/widgets/charts";
 import { Button } from "@/shared/ui/button";
 import { Badge } from "@/shared/ui/badge";
 import { Card, CardContent } from "@/shared/ui/card";
@@ -95,6 +95,12 @@ export default function AnalyticsPage() {
     name: cat.name,
     value: cat.total,
   }));
+  const lineData =
+    summary?.by_day.map((day) => ({
+      name: new Date(day.date).getDate().toString(),
+      value: day.total_expense,
+    })) || [];
+
 
   return (
     <AppLayout>
@@ -315,6 +321,37 @@ export default function AnalyticsPage() {
             </Card>
           </motion.div>
         </div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4, ...ease }}
+          className="mb-8"
+        >
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <TrendingDown className="size-5 text-primary" />
+                <h3 className="font-medium">Daily Expense Trend</h3>
+              </div>
+              {isLoading ? (
+                <div className="flex items-center justify-center h-72">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                </div>
+              ) : lineData.length > 0 ? (
+                <LineChart
+                  data={lineData}
+                  width={760}
+                  height={300}
+                  color="rgb(239 68 68)"
+                />
+              ) : (
+                <div className="flex items-center justify-center h-72 text-muted-foreground">
+                  No daily expense data
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
 
         <Separator className="mb-8" />
 

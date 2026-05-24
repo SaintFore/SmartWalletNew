@@ -5,12 +5,15 @@ import {
   useMonthlySummary,
   useTransactions,
   type TransactionCreateValues,
+  type QuickTransactionCreateValues,
 } from "@/entities/transaction";
 import {
   TransactionForm,
+  useCreateQuickTransaction,
   useCreateTransaction,
 } from "@/features/create-transaction";
 import { useDeleteTransaction } from "@/features/delete-transaction";
+import { useAccounts } from "@/entities/account";
 import { useCategories } from "@/entities/category";
 import { AppLayout } from "@/widgets/app-layout";
 import { SummaryCards } from "@/widgets/summary-cards";
@@ -30,7 +33,9 @@ export default function TransactionsPage() {
     isError,
   } = useTransactions(typeFilter);
   const { data: categories } = useCategories();
+  const { data: accounts } = useAccounts();
   const createMutation = useCreateTransaction();
+  const quickCreateMutation = useCreateQuickTransaction();
   const deleteMutation = useDeleteTransaction();
 
   const now = new Date();
@@ -42,6 +47,10 @@ export default function TransactionsPage() {
   function handleSubmit(data: TransactionCreateValues) {
     createMutation.mutate(data);
   }
+  function handleQuickSubmit(data: QuickTransactionCreateValues) {
+    quickCreateMutation.mutate(data);
+  }
+
 
   function handleDelete(id: number) {
     deleteMutation.mutate(id);
@@ -101,8 +110,11 @@ export default function TransactionsPage() {
         >
           <TransactionForm
             categories={categories || []}
+            accounts={accounts || []}
             onSubmit={handleSubmit}
+            onQuickSubmit={handleQuickSubmit}
             isPending={createMutation.isPending}
+            isQuickPending={quickCreateMutation.isPending}
             isError={createMutation.isError}
           />
         </motion.div>

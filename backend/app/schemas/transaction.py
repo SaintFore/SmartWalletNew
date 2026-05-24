@@ -1,4 +1,7 @@
-from datetime import date, datetime
+from __future__ import annotations
+
+from datetime import date as Date
+from datetime import datetime
 
 from sqlmodel import SQLModel
 
@@ -8,8 +11,10 @@ class TransactionBase(SQLModel):
     amount: float
     type: str
     category_id: int
+    account_id: int
     description: str | None = None
-    date: date
+    raw_input: str | None = None
+    date: Date
 
 
 class TransactionCreate(TransactionBase):
@@ -18,7 +23,7 @@ class TransactionCreate(TransactionBase):
 
 class TransactionRead(TransactionBase):
     id: int
-    date: date
+    date: Date
     created_at: datetime
 
 
@@ -27,7 +32,10 @@ class TransactionUpdate(SQLModel):
     amount: float | None = None
     type: str | None = None
     category_id: int | None = None
+    account_id: int | None = None
     description: str | None = None
+    raw_input: str | None = None
+    date: Date | None = None
 
 
 class CategorySummary(SQLModel):
@@ -37,9 +45,23 @@ class CategorySummary(SQLModel):
     total: float
     count: int
 
+class DailySummary(SQLModel):
+    date: Date
+    total_expense: float
+    total_income: float
+    net: float
+
+
 
 class TransactionSummary(SQLModel):
     total_expense: float
     total_income: float
     net: float
     by_category: list[CategorySummary]
+    by_day: list[DailySummary]
+
+
+class QuickTransactionCreate(SQLModel):
+    text: str
+    date: Date | None = None
+    description: str | None = None

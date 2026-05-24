@@ -1,23 +1,27 @@
-import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import {
-  Plus,
-  Loader2,
-  ArrowUpRight,
   ArrowDownRight,
+  ArrowUpRight,
   ChevronDown,
   ChevronUp,
+  Loader2,
+  Plus,
+  Sparkles,
 } from "lucide-react";
+import { useForm } from "react-hook-form";
+
 import {
+  quickTransactionCreateSchema,
   transactionCreateSchema,
+  type QuickTransactionCreateValues,
   type TransactionCreateValues,
 } from "@/entities/transaction";
 import { Button } from "@/shared/ui/button";
+import { Card, CardContent } from "@/shared/ui/card";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
-import { Card, CardContent } from "@/shared/ui/card";
 
 interface Category {
   id: number;
@@ -25,10 +29,20 @@ interface Category {
   icon?: string | null;
 }
 
+interface Account {
+  id: number;
+  name: string;
+  icon?: string | null;
+  is_default?: boolean;
+}
+
 interface TransactionFormProps {
   categories: Category[];
+  accounts: Account[];
   onSubmit: (data: TransactionCreateValues) => void;
+  onQuickSubmit: (data: QuickTransactionCreateValues) => void;
   isPending: boolean;
+  isQuickPending: boolean;
   isError: boolean;
 }
 
@@ -43,8 +57,11 @@ function saveLastCategoryId(id: number) {
 
 export function TransactionForm({
   categories,
+  accounts,
   onSubmit,
+  onQuickSubmit,
   isPending,
+  isQuickPending,
   isError,
 }: TransactionFormProps) {
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -63,17 +80,37 @@ export function TransactionForm({
       type: "expense",
       date: now.toISOString().split("T")[0],
       category_id: getLastCategoryId(),
+      account_id: accounts.find((account) => account.is_default)?.id ?? accounts[0]?.id,
+    },
+  });
+  const quickForm = useForm<QuickTransactionCreateValues>({
+    resolver: zodResolver(quickTransactionCreateSchema),
+    defaultValues: {
+      text: "",
+      date: now.toISOString().split("T")[0],
     },
   });
 
+
   const selectedType = watch("type");
   const selectedCategoryId = watch("category_id");
+  const selectedAccountId = watch("account_id");
 
   useEffect(() => {
     if (selectedCategoryId) {
       saveLastCategoryId(selectedCategoryId);
     }
   }, [selectedCategoryId]);
+  useEffect(() => {
+    const currentAccountId = selectedAccountId;
+    if (!currentAccountId && accounts.length > 0) {
+      setValue(
+        "account_id",
+        accounts.find((account) => account.is_default)?.id ?? accounts[0].id,
+      );
+    }
+  }, [accounts, selectedAccountId, setValue]);
+
 
   function handleFormSubmit(data: TransactionCreateValues) {
     onSubmit(data);
@@ -81,6 +118,14 @@ export function TransactionForm({
       type: data.type,
       date: data.date,
       category_id: data.category_id,
+      account_id: data.account_id,
+    });
+  }
+  function handleQuickSubmit(data: QuickTransactionCreateValues) {
+    onQuickSubmit(data);
+    quickForm.reset({
+      text: "",
+      date: data.date,
     });
   }
 
@@ -97,6 +142,38 @@ export function TransactionForm({
           </div>
         </div>
         <form
+          onSubmit={quickForm.handleSubmit(handleQuickSubmit)}
+          className="mb-5 grid gap-3 rounded-2xl border border-dashed border-primary/25 bg-primary/5 p-3 sm:grid-cols-[1fr_auto]"
+        >
+          <div>
+            <Input
+              placeholder="Quick add: 午饭 28 支付宝"
+              aria-label="Quick transaction input"
+              className="h-12 bg-background/80"
+              autoFocus
+              {...quickForm.register("text")}
+            />
+            {quickForm.formState.errors.text && (
+              <p className="mt-1 text-xs text-destructive">
+                {quickForm.formState.errors.text.message}
+              </p>
+            )}
+          </div>
+          <Button
+            type="submit"
+            disabled={isQuickPending}
+            className="h-12 shrink-0 px-5"
+          >
+            {isQuickPending ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <Sparkles className="size-4" />
+            )}
+            AI add
+          </Button>
+        </form>
+
+        <form
           onSubmit={handleSubmit(handleFormSubmit)}
           className="flex flex-col gap-4"
         >
@@ -108,7 +185,6 @@ export function TransactionForm({
                 step="0.01"
                 placeholder="0.00"
                 aria-label="Amount"
-                autoFocus
                 className="h-12 text-xl font-semibold"
                 {...register("amount", { valueAsNumber: true })}
               />
@@ -220,6 +296,28 @@ export function TransactionForm({
                       Date
                     </Label>
                     <Input id="date" type="date" {...register("date")} />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <Label htmlFor="account_id" className="text-xs">
+                      Account
+                    </Label>
+                    <select
+                      id="account_id"
+                      {...register("account_id", { valueAsNumber: true })}
+                      className="flex h-10 w-full rounded-xl border border-input bg-background/80 px-3 py-2 text-sm shadow-sm ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    >
+                      <option value="">Select account</option>
+                      {accounts.map((account) => (
+                        <option key={account.id} value={account.id}>
+                          {account.icon} {account.name}
+                        </option>
+                      ))}
+                    </select>
+                    {errors.account_id && (
+                      <p className="mt-1 text-xs text-destructive">
+                        {errors.account_id.message}
+                      </p>
+                    )}
                   </div>
                   <div className="flex flex-col gap-1.5 sm:col-span-2">
                     <Label htmlFor="description" className="text-xs">

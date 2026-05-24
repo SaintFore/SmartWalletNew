@@ -1,8 +1,9 @@
-from sqlmodel import Session, select
+from sqlmodel import Session, col, select
 
 from app.models.transaction import Transaction
 from app.schemas.transaction import (
     CategorySummary,
+    DailySummary,
     TransactionCreate,
     TransactionSummary,
     TransactionUpdate,
@@ -65,41 +66,48 @@ def get_monthly_summary(year: int, month: int, session: Session) -> TransactionS
 
     from app.models.category import Category
 
-    # 计算月份的开始和结束日期
     start_date = date(year, month, 1)
     if month == 12:
         end_date = date(year + 1, 1, 1)
     else:
         end_date = date(year, month + 1, 1)
 
-    # 查询指定月份的所有交易
-    statement = select(Transaction).where(
-        Transaction.date >= start_date, Transaction.date < end_date
+    statement = (
+        select(Transaction)
+        .where(col(Transaction.date) >= start_date, col(Transaction.date) < end_date)
+        .order_by(col(Transaction.date))
     )
     transactions = list(session.exec(statement).all())
 
-    # 计算总支出和总收入
     total_expense = sum(t.amount for t in transactions if t.type == "expense")
     total_income = sum(t.amount for t in transactions if t.type == "income")
     net = total_income - total_expense
 
-    # 按分类汇总
     category_totals: dict[int, dict] = {}
-    for t in transactions:
-        if t.category_id not in category_totals:
-            # 获取分类信息
-            category = session.get(Category, t.category_id)
-            category_totals[t.category_id] = {
-                "category_id": t.category_id,
+    daily_totals: dict[date, dict[str, float]] = {}
+
+    for transaction in transactions:
+        if transaction.category_id not in category_totals:
+            category = session.get(Category, transaction.category_id)
+            category_totals[transaction.category_id] = {
+                "category_id": transaction.category_id,
                 "category_name": category.name if category else "Unknown",
                 "category_icon": category.icon if category else None,
                 "total": 0.0,
                 "count": 0,
             }
-        category_totals[t.category_id]["total"] += t.amount
-        category_totals[t.category_id]["count"] += 1
+        category_totals[transaction.category_id]["total"] += transaction.amount
+        category_totals[transaction.category_id]["count"] += 1
 
-    # 转换为 CategorySummary 列表
+        day_total = daily_totals.setdefault(
+            transaction.date,
+            {"total_expense": 0.0, "total_income": 0.0},
+        )
+        if transaction.type == "income":
+            day_total["total_income"] += transaction.amount
+        else:
+            day_total["total_expense"] += transaction.amount
+
     by_category = [
         CategorySummary(
             category_id=data["category_id"],
@@ -111,9 +119,20 @@ def get_monthly_summary(year: int, month: int, session: Session) -> TransactionS
         for data in category_totals.values()
     ]
 
+    by_day = [
+        DailySummary(
+            date=day,
+            total_expense=data["total_expense"],
+            total_income=data["total_income"],
+            net=data["total_income"] - data["total_expense"],
+        )
+        for day, data in sorted(daily_totals.items())
+    ]
+
     return TransactionSummary(
         total_expense=total_expense,
         total_income=total_income,
         net=net,
         by_category=by_category,
+        by_day=by_day,
     )

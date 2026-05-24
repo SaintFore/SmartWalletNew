@@ -3,6 +3,7 @@ from datetime import date
 import pytest
 from sqlmodel import Session, SQLModel, create_engine
 
+from app.models.account import Account
 from app.models.category import Category
 from app.models.transaction import Transaction
 from app.services.transaction_service import get_monthly_summary
@@ -21,8 +22,18 @@ def session_fixture():
     SQLModel.metadata.drop_all(test_engine)
 
 
+def create_account_id(session: Session) -> int:
+    account = Account(name="现金", icon="💵", is_default=True)
+    session.add(account)
+    session.commit()
+    session.refresh(account)
+    assert account.id is not None
+    return account.id
+
+
 def create_test_data(session: Session):
     """创建测试数据。"""
+    account_id = create_account_id(session)
     # 创建分类
     food_category = Category(name="餐饮", icon="🍜")
     transport_category = Category(name="交通", icon="🚗")
@@ -48,6 +59,7 @@ def create_test_data(session: Session):
             amount=50.0,
             type="expense",
             category_id=food_category.id,
+            account_id=account_id,
             date=date(2026, 5, 1),
         ),
         Transaction(
@@ -55,6 +67,7 @@ def create_test_data(session: Session):
             amount=80.0,
             type="expense",
             category_id=food_category.id,
+            account_id=account_id,
             date=date(2026, 5, 15),
         ),
         Transaction(
@@ -62,6 +75,7 @@ def create_test_data(session: Session):
             amount=20.0,
             type="expense",
             category_id=transport_category.id,
+            account_id=account_id,
             date=date(2026, 5, 10),
         ),
         # 收入
@@ -70,6 +84,7 @@ def create_test_data(session: Session):
             amount=10000.0,
             type="income",
             category_id=salary_category.id,
+            account_id=account_id,
             date=date(2026, 5, 5),
         ),
         # 其他月份的交易（不应该被计算）
@@ -78,6 +93,7 @@ def create_test_data(session: Session):
             amount=30.0,
             type="expense",
             category_id=food_category.id,
+            account_id=account_id,
             date=date(2026, 4, 15),
         ),
         Transaction(
@@ -85,6 +101,7 @@ def create_test_data(session: Session):
             amount=40.0,
             type="expense",
             category_id=food_category.id,
+            account_id=account_id,
             date=date(2026, 6, 1),
         ),
     ]
@@ -170,12 +187,14 @@ def test_get_monthly_summary_december(session: Session):
     session.commit()
     session.refresh(food_category)
     assert food_category.id is not None
+    account_id = create_account_id(session)
 
     transaction = Transaction(
         name="年夜饭",
         amount=500.0,
         type="expense",
         category_id=food_category.id,
+        account_id=account_id,
         date=date(2026, 12, 31),
     )
     session.add(transaction)
@@ -186,6 +205,7 @@ def test_get_monthly_summary_december(session: Session):
         amount=100.0,
         type="expense",
         category_id=food_category.id,
+        account_id=account_id,
         date=date(2027, 1, 1),
     )
     session.add(transaction_jan)
@@ -208,6 +228,7 @@ def test_get_monthly_summary_only_expense(session: Session):
     session.commit()
     session.refresh(food_category)
     assert food_category.id is not None
+    account_id = create_account_id(session)
 
     transactions = [
         Transaction(
@@ -215,6 +236,7 @@ def test_get_monthly_summary_only_expense(session: Session):
             amount=50.0,
             type="expense",
             category_id=food_category.id,
+            account_id=account_id,
             date=date(2026, 3, 1),
         ),
         Transaction(
@@ -222,6 +244,7 @@ def test_get_monthly_summary_only_expense(session: Session):
             amount=80.0,
             type="expense",
             category_id=food_category.id,
+            account_id=account_id,
             date=date(2026, 3, 15),
         ),
     ]
@@ -244,12 +267,14 @@ def test_get_monthly_summary_only_income(session: Session):
     session.commit()
     session.refresh(salary_category)
     assert salary_category.id is not None
+    account_id = create_account_id(session)
 
     transaction = Transaction(
         name="工资",
         amount=10000.0,
         type="income",
         category_id=salary_category.id,
+        account_id=account_id,
         date=date(2026, 2, 5),
     )
     session.add(transaction)
