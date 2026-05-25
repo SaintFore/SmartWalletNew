@@ -1,4 +1,11 @@
-import { Home, PieChart, DollarSign, BarChart3, Wallet } from "lucide-react";
+import {
+  BarChart3,
+  DollarSign,
+  Home,
+  PieChart,
+  Wallet,
+  WalletCards,
+} from "lucide-react";
 import { Link, useLocation } from "react-router";
 import {
   Sidebar,
@@ -16,6 +23,7 @@ import {
 const menuItems = [
   { path: "/", label: "Home", icon: Home },
   { path: "/categories", label: "Categories", icon: PieChart },
+  { path: "/accounts", label: "Accounts", icon: WalletCards },
   { path: "/transactions", label: "Transactions", icon: DollarSign },
   { path: "/analytics", label: "Analytics", icon: BarChart3 },
 ];

@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Check, FolderOpen, Pencil, Trash2, X } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { Check, CreditCard, Pencil, Star, Trash2, WalletCards, X } from "lucide-react";
 
-import type { CategoryUpdateValues } from "@/entities/category";
+import type { AccountUpdateValues } from "@/entities/account";
+import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
 import { Card, CardContent } from "@/shared/ui/card";
 import { Input } from "@/shared/ui/input";
@@ -10,29 +11,31 @@ import { Skeleton } from "@/shared/ui/skeleton";
 
 const ease = { duration: 0.4, ease: [0.22, 1, 0.36, 1] as const };
 
-interface Category {
+interface Account {
   id: number;
   name: string;
   icon?: string | null;
+  is_default: boolean;
 }
 
-interface CategoryListProps {
-  categories: Category[];
+interface AccountListProps {
+  accounts: Account[];
   isLoading: boolean;
   isError: boolean;
   onDelete: (id: number) => void;
   isDeleting: boolean;
-  onUpdate: (id: number, data: CategoryUpdateValues) => void;
+  onUpdate: (id: number, data: AccountUpdateValues) => void;
   isUpdating: boolean;
 }
 
-interface CategoryDraft {
+interface AccountDraft {
   id: number;
   name: string;
   icon: string;
+  is_default: boolean;
 }
 
-function CategoryListSkeleton() {
+function AccountListSkeleton() {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {Array.from({ length: 6 }).map((_, i) => (
@@ -41,8 +44,8 @@ function CategoryListSkeleton() {
             <div className="flex items-start gap-3">
               <Skeleton className="size-12 rounded-xl" />
               <div className="flex-1 flex flex-col gap-2">
-                <Skeleton className="h-4 w-24" />
-                <Skeleton className="h-3 w-16" />
+                <Skeleton className="h-4 w-28" />
+                <Skeleton className="h-3 w-20" />
               </div>
             </div>
           </CardContent>
@@ -52,54 +55,53 @@ function CategoryListSkeleton() {
   );
 }
 
-export function CategoryList({
-  categories,
+export function AccountList({
+  accounts,
   isLoading,
   isError,
   onDelete,
   isDeleting,
   onUpdate,
   isUpdating,
-}: CategoryListProps) {
-  const [draft, setDraft] = useState<CategoryDraft | null>(null);
+}: AccountListProps) {
+  const [draft, setDraft] = useState<AccountDraft | null>(null);
 
   if (isLoading) {
-    return <CategoryListSkeleton />;
+    return <AccountListSkeleton />;
   }
 
   if (isError) {
     return (
       <Card className="border-destructive/50">
         <CardContent className="p-6 text-center">
-          <p className="text-destructive font-medium">
-            Failed to load categories
-          </p>
+          <p className="text-destructive font-medium">Failed to load accounts</p>
         </CardContent>
       </Card>
     );
   }
 
-  if (categories.length === 0) {
+  if (accounts.length === 0) {
     return (
       <Card>
         <CardContent className="p-12 text-center">
           <div className="size-16 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4">
-            <FolderOpen className="size-8 text-muted-foreground" />
+            <WalletCards className="size-8 text-muted-foreground" />
           </div>
-          <h3 className="font-medium text-lg mb-2">No categories yet</h3>
+          <h3 className="font-medium text-lg mb-2">No accounts yet</h3>
           <p className="text-sm text-muted-foreground">
-            Create your first category to start organizing your transactions.
+            Create your first account before adding transactions.
           </p>
         </CardContent>
       </Card>
     );
   }
 
-  function startEditing(category: Category) {
+  function startEditing(account: Account) {
     setDraft({
-      id: category.id,
-      name: category.name,
-      icon: category.icon ?? "",
+      id: account.id,
+      name: account.name,
+      icon: account.icon ?? "",
+      is_default: account.is_default,
     });
   }
 
@@ -112,6 +114,7 @@ export function CategoryList({
     onUpdate(draft.id, {
       name,
       icon: draft.icon.trim() || null,
+      is_default: draft.is_default,
     });
     setDraft(null);
   }
@@ -119,11 +122,11 @@ export function CategoryList({
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       <AnimatePresence mode="popLayout">
-        {categories.map((category, i) => {
-          const isEditing = draft?.id === category.id;
+        {accounts.map((account, i) => {
+          const isEditing = draft?.id === account.id;
           return (
             <motion.div
-              key={category.id}
+              key={account.id}
               layout
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -136,7 +139,7 @@ export function CategoryList({
                     <div className="flex flex-col gap-3">
                       <div className="grid grid-cols-[4rem_1fr] gap-3">
                         <Input
-                          aria-label="Category icon"
+                          aria-label="Account icon"
                           value={draft.icon}
                           onChange={(event) =>
                             setDraft({ ...draft, icon: event.target.value })
@@ -145,7 +148,7 @@ export function CategoryList({
                           maxLength={8}
                         />
                         <Input
-                          aria-label="Category name"
+                          aria-label="Account name"
                           value={draft.name}
                           onChange={(event) =>
                             setDraft({ ...draft, name: event.target.value })
@@ -153,6 +156,20 @@ export function CategoryList({
                           className="h-11"
                         />
                       </div>
+                      <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <input
+                          type="checkbox"
+                          checked={draft.is_default}
+                          onChange={(event) =>
+                            setDraft({
+                              ...draft,
+                              is_default: event.target.checked,
+                            })
+                          }
+                          className="size-4 accent-primary"
+                        />
+                        Default account
+                      </label>
                       <div className="flex justify-end gap-2">
                         <Button
                           type="button"
@@ -178,28 +195,50 @@ export function CategoryList({
                   ) : (
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-3">
-                        {category.icon ? (
+                        {account.icon ? (
                           <div className="size-14 rounded-2xl bg-primary/10 flex items-center justify-center text-3xl shadow-inner">
-                            {category.icon}
+                            {account.icon}
                           </div>
                         ) : (
                           <div className="size-14 rounded-2xl bg-muted flex items-center justify-center shadow-inner">
-                            <FolderOpen className="size-6 text-muted-foreground" />
+                            <CreditCard className="size-6 text-muted-foreground" />
                           </div>
                         )}
                         <div>
-                          <p className="font-medium">{category.name}</p>
+                          <div className="flex items-center gap-2">
+                            <p className="font-medium">{account.name}</p>
+                            {account.is_default && (
+                              <Badge variant="secondary" className="gap-1">
+                                <Star className="size-3 fill-current" />
+                                Default
+                              </Badge>
+                            )}
+                          </div>
                           <p className="text-xs text-muted-foreground">
-                            Personal bucket
+                            Payment account
                           </p>
                         </div>
                       </div>
                       <div className="flex opacity-0 transition-opacity group-hover:opacity-100">
+                        {!account.is_default && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            disabled={isUpdating || isDeleting}
+                            onClick={() =>
+                              onUpdate(account.id, { is_default: true })
+                            }
+                            className="size-8"
+                            title="Make default"
+                          >
+                            <Star className="size-4 text-muted-foreground hover:text-primary" />
+                          </Button>
+                        )}
                         <Button
                           variant="ghost"
                           size="icon"
                           disabled={isUpdating || isDeleting}
-                          onClick={() => startEditing(category)}
+                          onClick={() => startEditing(account)}
                           className="size-8"
                         >
                           <Pencil className="size-4 text-muted-foreground hover:text-primary" />
@@ -208,7 +247,7 @@ export function CategoryList({
                           variant="ghost"
                           size="icon"
                           disabled={isDeleting || isUpdating}
-                          onClick={() => onDelete(category.id)}
+                          onClick={() => onDelete(account.id)}
                           className="size-8"
                         >
                           <Trash2 className="size-4 text-muted-foreground hover:text-destructive" />

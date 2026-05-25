@@ -1,41 +1,42 @@
 import { motion } from "framer-motion";
-import { PieChart } from "lucide-react";
+import { WalletCards } from "lucide-react";
+
 import {
-  useCategories,
-  type CategoryCreateValues,
-  type CategoryUpdateValues,
-} from "@/entities/category";
-import { CategoryForm, useCreateCategory } from "@/features/create-category";
-import { useDeleteCategory } from "@/features/delete-category";
-import { useUpdateCategory } from "@/features/update-category";
+  useAccounts,
+  type AccountCreateValues,
+  type AccountUpdateValues,
+} from "@/entities/account";
+import { AccountForm, useCreateAccount } from "@/features/create-account";
+import { useDeleteAccount } from "@/features/delete-account";
+import { useUpdateAccount } from "@/features/update-account";
 import { AppLayout } from "@/widgets/app-layout";
-import { CategoryList } from "@/widgets/category-list";
+import { AccountList } from "@/widgets/account-list";
 import { Badge } from "@/shared/ui/badge";
 import { Separator } from "@/shared/ui/separator";
 
 const ease = { duration: 0.4, ease: [0.22, 1, 0.36, 1] as const };
 
-export default function CategoriesPage() {
-  const { data: categories, isLoading, isError } = useCategories();
-  const createMutation = useCreateCategory();
-  const deleteMutation = useDeleteCategory();
-  const updateMutation = useUpdateCategory();
+export default function AccountsPage() {
+  const { data: accounts, isLoading, isError } = useAccounts();
+  const createMutation = useCreateAccount();
+  const updateMutation = useUpdateAccount();
+  const deleteMutation = useDeleteAccount();
 
-  function handleSubmit(data: CategoryCreateValues) {
+  function handleSubmit(data: AccountCreateValues) {
     createMutation.mutate(data);
+  }
+
+  function handleUpdate(id: number, data: AccountUpdateValues) {
+    updateMutation.mutate({ id, data });
   }
 
   function handleDelete(id: number) {
     deleteMutation.mutate(id);
   }
 
-  function handleUpdate(id: number, data: CategoryUpdateValues) {
-    updateMutation.mutate({ id, data });
-  }
   return (
     <AppLayout>
       <div className="max-w-5xl mx-auto">
-        {/* Page Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -45,29 +46,28 @@ export default function CategoriesPage() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center gap-3">
               <div className="size-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                <PieChart className="size-6 text-primary" />
+                <WalletCards className="size-6 text-primary" />
               </div>
               <div>
-                <h1 className="text-2xl font-semibold">Categories</h1>
+                <h1 className="text-2xl font-semibold">Accounts</h1>
                 <p className="text-sm text-muted-foreground">
-                  Organize your transactions with smart categories
+                  Manage cash, cards, wallets, and the default payment account
                 </p>
               </div>
             </div>
             <Badge variant="secondary" className="w-fit">
-              {categories?.length || 0} categories
+              {accounts?.length || 0} accounts
             </Badge>
           </div>
         </motion.div>
 
-        {/* Create Form */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1, ...ease }}
           className="mb-8"
         >
-          <CategoryForm
+          <AccountForm
             onSubmit={handleSubmit}
             isPending={createMutation.isPending}
             isError={createMutation.isError}
@@ -76,15 +76,14 @@ export default function CategoriesPage() {
 
         <Separator className="mb-8" />
 
-        {/* Categories List */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, ...ease }}
         >
-          <h2 className="text-lg font-medium mb-6">Your Categories</h2>
-          <CategoryList
-            categories={categories || []}
+          <h2 className="text-lg font-medium mb-6">Your Accounts</h2>
+          <AccountList
+            accounts={accounts || []}
             isLoading={isLoading}
             isError={isError}
             onDelete={handleDelete}

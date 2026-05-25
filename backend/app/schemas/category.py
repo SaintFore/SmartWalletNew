@@ -15,5 +15,5 @@ class CategoryRead(CategoryBase):
 
 
 class CategoryUpdate(SQLModel):
-    name: int | None = None
+    name: str | None = None
     icon: str | None = None

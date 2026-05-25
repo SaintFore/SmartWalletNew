@@ -258,7 +258,7 @@ export interface components {
         /** CategoryUpdate */
         CategoryUpdate: {
             /** Name */
-            name?: number | null;
+            name?: string | null;
             /** Icon */
             icon?: string | null;
         };
