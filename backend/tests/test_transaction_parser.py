@@ -8,12 +8,13 @@ from app.models.category import Category
 from app.schemas.transaction import QuickTransactionCreate
 from app.services.transaction_parser import TransactionParseError, parse_quick_transaction
 
-TEST_DATABASE_URL = "sqlite:///./test_parser.db"
-test_engine = create_engine(TEST_DATABASE_URL, connect_args={"check_same_thread": False})
-
 
 @pytest.fixture(name="session")
-def session_fixture():
+def session_fixture(tmp_path):
+    test_engine = create_engine(
+        f"sqlite:///{tmp_path / 'test_parser.db'}",
+        connect_args={"check_same_thread": False},
+    )
     SQLModel.metadata.create_all(test_engine)
     with Session(test_engine) as session:
         yield session

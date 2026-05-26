@@ -1,7 +1,12 @@
 from sqlmodel import Session, select
 
 from app.models.category import Category
+from app.models.transaction import Transaction
 from app.schemas.category import CategoryCreate, CategoryUpdate
+
+
+class CategoryInUseError(ValueError):
+    pass
 
 
 def get_all(session: Session, category_id: int) -> Category | None:
@@ -26,6 +31,11 @@ def delete(category_id: int, session: Session) -> Category | None:
 
     if category is None:
         return None
+    has_transactions = session.exec(
+        select(Transaction).where(Transaction.category_id == category_id)
+    ).first()
+    if has_transactions is not None:
+        raise CategoryInUseError("Category has transactions")
     session.delete(category)
     session.commit()
     return category

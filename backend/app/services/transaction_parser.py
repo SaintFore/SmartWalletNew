@@ -4,7 +4,7 @@ import json
 import re
 from datetime import date
 from decimal import Decimal, InvalidOperation
-from typing import Any
+from typing import Any, Literal, cast
 from urllib import error, request
 
 from sqlmodel import Session, select
@@ -14,6 +14,8 @@ from app.models.account import Account
 from app.models.category import Category
 from app.schemas.transaction import QuickTransactionCreate, TransactionCreate
 from app.services.account_service import get_or_create_default
+
+TransactionType = Literal["expense", "income"]
 
 _AMOUNT_RE = re.compile(r"(?<!\d)([+-]?\d+(?:\.\d{1,2})?)(?!\d)")
 _EXPENSE_HINTS = ("花", "买", "付", "支出", "午饭", "晚饭", "早餐", "咖啡", "地铁", "打车")
@@ -122,9 +124,10 @@ def _build_transaction(
 ) -> TransactionCreate:
     amount = _to_amount(str(parsed.get("amount", "")))
     parsed_type = parsed.get("type")
-    transaction_type = (
-        parsed_type if parsed_type in {"expense", "income"} else _infer_type(quick_in.text)
-    )
+    if parsed_type in ("expense", "income"):
+        transaction_type = cast(TransactionType, parsed_type)
+    else:
+        transaction_type = _infer_type(quick_in.text)
     account = _find_account_by_name(str(parsed.get("account") or ""), session)
     account = account or _match_account(quick_in.text, session) or get_or_create_default(session)
     category = _find_category_by_name(str(parsed.get("category") or ""), session)
@@ -148,17 +151,17 @@ def _build_transaction(
     )
 
 
-def _to_amount(value: str) -> float:
+def _to_amount(value: str) -> Decimal:
     try:
         amount = Decimal(value).copy_abs()
     except InvalidOperation as exc:
         raise TransactionParseError("Invalid amount") from exc
     if amount == 0:
         raise TransactionParseError("Amount must be greater than zero")
-    return float(amount)
+    return amount
 
 
-def _infer_type(text: str) -> str:
+def _infer_type(text: str) -> TransactionType:
     if any(hint in text for hint in _INCOME_HINTS):
         return "income"
     if any(hint in text for hint in _EXPENSE_HINTS):

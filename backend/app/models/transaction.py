@@ -1,4 +1,5 @@
 from datetime import date, datetime
+from decimal import Decimal
 
 from sqlmodel import Field, SQLModel
 
@@ -6,7 +7,7 @@ from sqlmodel import Field, SQLModel
 class Transaction(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     name: str | None = None
-    amount: float
+    amount: Decimal = Field(max_digits=12, decimal_places=2)
     type: str = Field(default="expense")
     category_id: int = Field(foreign_key="category.id")
     account_id: int = Field(foreign_key="account.id")

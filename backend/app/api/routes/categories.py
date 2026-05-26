@@ -6,7 +6,7 @@ from sqlmodel import Session
 from app.db.session import get_session
 from app.models.category import Category
 from app.schemas.category import CategoryCreate, CategoryRead, CategoryUpdate
-from app.services.category_service import create, delete, get, get_all, update
+from app.services.category_service import CategoryInUseError, create, delete, get, get_all, update
 
 router = APIRouter(prefix="/categories", tags=["categories"])
 
@@ -36,7 +36,10 @@ def create_new_category(
 
 @router.delete("/{category_id}", status_code=204)
 def delete_n_category(category_id: int, session: Annotated[Session, Depends(get_session)]):
-    category = delete(category_id, session)
+    try:
+        category = delete(category_id, session)
+    except CategoryInUseError as exc:
+        raise HTTPException(status_code=409, detail="Category has transactions") from exc
     if not category:
         raise HTTPException(status_code=404, detail="category not found")
 

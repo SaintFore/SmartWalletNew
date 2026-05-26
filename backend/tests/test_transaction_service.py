@@ -1,4 +1,5 @@
 from datetime import date
+from decimal import Decimal
 
 import pytest
 from sqlmodel import Session, SQLModel, create_engine
@@ -8,14 +9,14 @@ from app.models.category import Category
 from app.models.transaction import Transaction
 from app.services.transaction_service import get_monthly_summary
 
-# 使用 SQLite 内存数据库进行测试
-TEST_DATABASE_URL = "sqlite:///./test.db"
-test_engine = create_engine(TEST_DATABASE_URL, connect_args={"check_same_thread": False})
-
 
 @pytest.fixture(name="session")
-def session_fixture():
-    """创建测试数据库会话。"""
+def session_fixture(tmp_path):
+    """创建隔离的测试数据库会话。"""
+    test_engine = create_engine(
+        f"sqlite:///{tmp_path / 'test.db'}",
+        connect_args={"check_same_thread": False},
+    )
     SQLModel.metadata.create_all(test_engine)
     with Session(test_engine) as session:
         yield session
@@ -56,7 +57,7 @@ def create_test_data(session: Session):
         # 支出
         Transaction(
             name="午餐",
-            amount=50.0,
+            amount=Decimal("50.0"),
             type="expense",
             category_id=food_category.id,
             account_id=account_id,
@@ -64,7 +65,7 @@ def create_test_data(session: Session):
         ),
         Transaction(
             name="晚餐",
-            amount=80.0,
+            amount=Decimal("80.0"),
             type="expense",
             category_id=food_category.id,
             account_id=account_id,
@@ -72,7 +73,7 @@ def create_test_data(session: Session):
         ),
         Transaction(
             name="地铁",
-            amount=20.0,
+            amount=Decimal("20.0"),
             type="expense",
             category_id=transport_category.id,
             account_id=account_id,
@@ -81,7 +82,7 @@ def create_test_data(session: Session):
         # 收入
         Transaction(
             name="工资",
-            amount=10000.0,
+            amount=Decimal("10000.0"),
             type="income",
             category_id=salary_category.id,
             account_id=account_id,
@@ -90,7 +91,7 @@ def create_test_data(session: Session):
         # 其他月份的交易（不应该被计算）
         Transaction(
             name="4月午餐",
-            amount=30.0,
+            amount=Decimal("30.0"),
             type="expense",
             category_id=food_category.id,
             account_id=account_id,
@@ -98,7 +99,7 @@ def create_test_data(session: Session):
         ),
         Transaction(
             name="6月午餐",
-            amount=40.0,
+            amount=Decimal("40.0"),
             type="expense",
             category_id=food_category.id,
             account_id=account_id,
@@ -191,7 +192,7 @@ def test_get_monthly_summary_december(session: Session):
 
     transaction = Transaction(
         name="年夜饭",
-        amount=500.0,
+        amount=Decimal("500.0"),
         type="expense",
         category_id=food_category.id,
         account_id=account_id,
@@ -202,7 +203,7 @@ def test_get_monthly_summary_december(session: Session):
     # 创建1月的交易（不应该被计算）
     transaction_jan = Transaction(
         name="元旦",
-        amount=100.0,
+        amount=Decimal("100.0"),
         type="expense",
         category_id=food_category.id,
         account_id=account_id,
@@ -233,7 +234,7 @@ def test_get_monthly_summary_only_expense(session: Session):
     transactions = [
         Transaction(
             name="午餐",
-            amount=50.0,
+            amount=Decimal("50.0"),
             type="expense",
             category_id=food_category.id,
             account_id=account_id,
@@ -241,7 +242,7 @@ def test_get_monthly_summary_only_expense(session: Session):
         ),
         Transaction(
             name="晚餐",
-            amount=80.0,
+            amount=Decimal("80.0"),
             type="expense",
             category_id=food_category.id,
             account_id=account_id,
@@ -271,7 +272,7 @@ def test_get_monthly_summary_only_income(session: Session):
 
     transaction = Transaction(
         name="工资",
-        amount=10000.0,
+        amount=Decimal("10000.0"),
         type="income",
         category_id=salary_category.id,
         account_id=account_id,
@@ -287,3 +288,42 @@ def test_get_monthly_summary_only_income(session: Session):
     assert result.net == 10000.0
     assert len(result.by_category) == 1
     assert result.by_category[0].category_name == "工资"
+
+
+def test_get_monthly_summary_preserves_decimal_precision(session: Session):
+    category = Category(name="餐饮", icon="🍜")
+    session.add(category)
+    session.commit()
+    session.refresh(category)
+    assert category.id is not None
+    account_id = create_account_id(session)
+
+    transactions = [
+        Transaction(
+            name="早餐",
+            amount=Decimal("0.10"),
+            type="expense",
+            category_id=category.id,
+            account_id=account_id,
+            date=date(2026, 5, 1),
+        ),
+        Transaction(
+            name="午餐",
+            amount=Decimal("0.20"),
+            type="expense",
+            category_id=category.id,
+            account_id=account_id,
+            date=date(2026, 5, 1),
+        ),
+    ]
+    for transaction in transactions:
+        session.add(transaction)
+    session.commit()
+
+    result = get_monthly_summary(2026, 5, session)
+
+    assert result.total_expense == Decimal("0.30")
+    assert result.total_income == Decimal("0")
+    assert result.net == Decimal("-0.30")
+    assert result.by_category[0].total == Decimal("0.30")
+    assert result.by_day[0].total_expense == Decimal("0.30")

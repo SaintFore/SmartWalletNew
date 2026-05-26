@@ -1,5 +1,7 @@
 from collections.abc import Iterator
+from sqlite3 import Connection as SQLiteConnection
 
+from sqlalchemy import event
 from sqlmodel import Session, SQLModel, create_engine
 
 from app.core.config import settings
@@ -14,6 +16,17 @@ engine = create_engine(
     echo=settings.debug,
     connect_args=connect_args,
 )
+
+if settings.database_url.startswith("sqlite"):
+
+    @event.listens_for(engine, "connect")
+    def _enable_sqlite_foreign_keys(
+        dbapi_connection: SQLiteConnection,
+        connection_record: object,
+    ) -> None:
+        cursor = dbapi_connection.cursor()
+        cursor.execute("PRAGMA foreign_keys=ON")
+        cursor.close()
 
 
 def get_session() -> Iterator[Session]:

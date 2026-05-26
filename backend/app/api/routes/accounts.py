@@ -6,7 +6,14 @@ from sqlmodel import Session
 from app.db.session import get_session
 from app.models.account import Account
 from app.schemas.account import AccountCreate, AccountRead, AccountUpdate
-from app.services.account_service import create, delete, get_all, get_by_id, update
+from app.services.account_service import (
+    AccountInUseError,
+    create,
+    delete,
+    get_all,
+    get_by_id,
+    update,
+)
 
 router = APIRouter(prefix="/accounts", tags=["accounts"])
 
@@ -46,6 +53,9 @@ def update_account(
 
 @router.delete("/{account_id}", status_code=204)
 def delete_account(account_id: int, session: Annotated[Session, Depends(get_session)]):
-    account = delete(account_id, session)
+    try:
+        account = delete(account_id, session)
+    except AccountInUseError as exc:
+        raise HTTPException(status_code=409, detail="Account has transactions") from exc
     if account is None:
         raise HTTPException(status_code=404, detail="Account not found")

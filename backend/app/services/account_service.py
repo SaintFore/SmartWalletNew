@@ -1,7 +1,12 @@
 from sqlmodel import Session, select
 
 from app.models.account import Account
+from app.models.transaction import Transaction
 from app.schemas.account import AccountCreate, AccountUpdate
+
+
+class AccountInUseError(ValueError):
+    pass
 
 
 def get_all(session: Session) -> list[Account]:
@@ -61,6 +66,11 @@ def delete(account_id: int, session: Session) -> Account | None:
     account = session.get(Account, account_id)
     if account is None:
         return None
+    has_transactions = session.exec(
+        select(Transaction).where(Transaction.account_id == account_id)
+    ).first()
+    if has_transactions is not None:
+        raise AccountInUseError("Account has transactions")
     session.delete(account)
     session.commit()
     return account
