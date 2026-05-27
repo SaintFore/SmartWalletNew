@@ -104,7 +104,7 @@ export interface paths {
         };
         /**
          * Read Transactions
-         * @description 获取所有交易，可按类型过滤。
+         * @description 获取交易列表，支持筛选和分页。
          */
         get: operations["read_transactions_api_transactions_get"];
         put?: never;
@@ -217,6 +217,21 @@ export interface components {
             /** Id */
             id: number;
         };
+        /** AccountSummary */
+        AccountSummary: {
+            /** Account Id */
+            account_id: number;
+            /** Account Name */
+            account_name: string;
+            /** Total Expense */
+            total_expense: string;
+            /** Total Income */
+            total_income: string;
+            /** Net */
+            net: string;
+            /** Count */
+            count: number;
+        };
         /** AccountUpdate */
         AccountUpdate: {
             /** Name */
@@ -225,6 +240,27 @@ export interface components {
             icon?: string | null;
             /** Is Default */
             is_default?: boolean | null;
+        };
+        /** AccountWithBalance */
+        AccountWithBalance: {
+            /** Name */
+            name: string;
+            /** Icon */
+            icon?: string | null;
+            /**
+             * Is Default
+             * @default false
+             */
+            is_default: boolean;
+            /** Id */
+            id: number;
+            /** Balance */
+            balance: string;
+            /**
+             * Has Transactions
+             * @default false
+             */
+            has_transactions: boolean;
         };
         /** CategoryCreate */
         CategoryCreate: {
@@ -251,7 +287,7 @@ export interface components {
             /** Category Icon */
             category_icon: string | null;
             /** Total */
-            total: number;
+            total: string;
             /** Count */
             count: number;
         };
@@ -270,31 +306,27 @@ export interface components {
              */
             date: string;
             /** Total Expense */
-            total_expense: number;
+            total_expense: string;
             /** Total Income */
-            total_income: number;
+            total_income: string;
             /** Net */
-            net: number;
-        };
-        /** AccountSummary */
-        AccountSummary: {
-            /** Account Id */
-            account_id: number;
-            /** Account Name */
-            account_name: string;
-            /** Total Expense */
-            total_expense: number;
-            /** Total Income */
-            total_income: number;
-            /** Net */
-            net: number;
-            /** Count */
-            count: number;
+            net: string;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /** PaginatedTransactions */
+        PaginatedTransactions: {
+            /** Items */
+            items: components["schemas"]["TransactionRead"][];
+            /** Total */
+            total: number;
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
         };
         /** QuickTransactionCreate */
         QuickTransactionCreate: {
@@ -310,9 +342,12 @@ export interface components {
             /** Name */
             name?: string | null;
             /** Amount */
-            amount: number;
-            /** Type */
-            type: string;
+            amount: number | string;
+            /**
+             * Type
+             * @enum {string}
+             */
+            type: "expense" | "income";
             /** Category Id */
             category_id: number;
             /** Account Id */
@@ -332,9 +367,12 @@ export interface components {
             /** Name */
             name?: string | null;
             /** Amount */
-            amount: number;
-            /** Type */
-            type: string;
+            amount: string;
+            /**
+             * Type
+             * @enum {string}
+             */
+            type: "expense" | "income";
             /** Category Id */
             category_id: number;
             /** Account Id */
@@ -359,11 +397,11 @@ export interface components {
         /** TransactionSummary */
         TransactionSummary: {
             /** Total Expense */
-            total_expense: number;
+            total_expense: string;
             /** Total Income */
-            total_income: number;
+            total_income: string;
             /** Net */
-            net: number;
+            net: string;
             /** By Category */
             by_category: components["schemas"]["CategorySummary"][];
             /** By Day */
@@ -376,9 +414,9 @@ export interface components {
             /** Name */
             name?: string | null;
             /** Amount */
-            amount?: number | null;
+            amount?: number | string | null;
             /** Type */
-            type?: string | null;
+            type?: ("expense" | "income") | null;
             /** Category Id */
             category_id?: number | null;
             /** Account Id */
@@ -449,7 +487,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AccountRead"][];
+                    "application/json": components["schemas"]["AccountWithBalance"][];
                 };
             };
         };
@@ -734,6 +772,13 @@ export interface operations {
         parameters: {
             query?: {
                 type?: string | null;
+                account_id?: number | null;
+                category_id?: number | null;
+                date_from?: string | null;
+                date_to?: string | null;
+                search?: string | null;
+                limit?: number;
+                offset?: number;
             };
             header?: never;
             path?: never;
@@ -747,7 +792,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["TransactionRead"][];
+                    "application/json": components["schemas"]["PaginatedTransactions"];
                 };
             };
             /** @description Validation Error */

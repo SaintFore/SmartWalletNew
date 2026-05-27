@@ -20,13 +20,13 @@ import { Label } from "@/shared/ui/label";
 interface AccountFormProps {
   onSubmit: (data: AccountCreateValues) => void;
   isPending: boolean;
-  isError: boolean;
+  errorMessage?: string;
 }
 
 export function AccountForm({
   onSubmit,
   isPending,
-  isError,
+  errorMessage,
 }: AccountFormProps) {
   const {
     register,
@@ -113,10 +113,8 @@ export function AccountForm({
             </Button>
           </div>
         </form>
-        {isError && (
-          <p className="text-sm text-destructive mt-4">
-            Failed to create account.
-          </p>
+        {errorMessage && (
+          <p className="text-sm text-destructive mt-4">{errorMessage}</p>
         )}
       </CardContent>
     </Card>

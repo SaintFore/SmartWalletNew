@@ -5,12 +5,14 @@ from sqlmodel import Session
 
 from app.db.session import get_session
 from app.models.account import Account
-from app.schemas.account import AccountCreate, AccountRead, AccountUpdate
+from app.schemas.account import AccountCreate, AccountRead, AccountUpdate, AccountWithBalance
 from app.services.account_service import (
     AccountInUseError,
+    AccountNameDuplicateError,
     create,
     delete,
     get_all,
+    get_all_with_balance,
     get_by_id,
     update,
 )
@@ -18,9 +20,9 @@ from app.services.account_service import (
 router = APIRouter(prefix="/accounts", tags=["accounts"])
 
 
-@router.get("", response_model=list[AccountRead])
-def read_accounts(session: Annotated[Session, Depends(get_session)]) -> list[Account]:
-    return get_all(session)
+@router.get("", response_model=list[AccountWithBalance])
+def read_accounts(session: Annotated[Session, Depends(get_session)]) -> list[AccountWithBalance]:
+    return get_all_with_balance(session)
 
 
 @router.get("/{account_id}", response_model=AccountRead)
@@ -36,7 +38,10 @@ def create_account(
     account_in: AccountCreate,
     session: Annotated[Session, Depends(get_session)],
 ) -> Account:
-    return create(account_in, session)
+    try:
+        return create(account_in, session)
+    except AccountNameDuplicateError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
 
 
 @router.patch("/{account_id}", response_model=AccountRead)
@@ -45,7 +50,10 @@ def update_account(
     account_in: AccountUpdate,
     session: Annotated[Session, Depends(get_session)],
 ) -> Account:
-    account = update(account_id, account_in, session)
+    try:
+        account = update(account_id, account_in, session)
+    except AccountNameDuplicateError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
     if account is None:
         raise HTTPException(status_code=404, detail="Account not found")
     return account

@@ -3,11 +3,27 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Check, CreditCard, Pencil, Star, Trash2, WalletCards, X } from "lucide-react";
 
 import type { AccountUpdateValues } from "@/entities/account";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/shared/ui/alert-dialog";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
 import { Card, CardContent } from "@/shared/ui/card";
 import { Input } from "@/shared/ui/input";
 import { Skeleton } from "@/shared/ui/skeleton";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/shared/ui/tooltip";
+import { formatCurrency } from "@/shared/lib/format";
 
 const ease = { duration: 0.4, ease: [0.22, 1, 0.36, 1] as const };
 
@@ -16,6 +32,8 @@ interface Account {
   name: string;
   icon?: string | null;
   is_default: boolean;
+  balance: number | string;
+  has_transactions?: boolean;
 }
 
 interface AccountListProps {
@@ -65,6 +83,7 @@ export function AccountList({
   isUpdating,
 }: AccountListProps) {
   const [draft, setDraft] = useState<AccountDraft | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<Account | null>(null);
 
   if (isLoading) {
     return <AccountListSkeleton />;
@@ -210,12 +229,14 @@ export function AccountList({
                             {account.is_default && (
                               <Badge variant="secondary" className="gap-1">
                                 <Star className="size-3 fill-current" />
-                                Default
+                                默认
                               </Badge>
                             )}
                           </div>
-                          <p className="text-xs text-muted-foreground">
-                            Payment account
+                          <p className={`text-lg font-semibold tracking-tight ${
+                            Number(account.balance) >= 0 ? "text-emerald-500" : "text-red-500"
+                          }`}>
+                            {formatCurrency(Number(account.balance))}
                           </p>
                         </div>
                       </div>
@@ -243,15 +264,33 @@ export function AccountList({
                         >
                           <Pencil className="size-4 text-muted-foreground hover:text-primary" />
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          disabled={isDeleting || isUpdating}
-                          onClick={() => onDelete(account.id)}
-                          className="size-8"
-                        >
-                          <Trash2 className="size-4 text-muted-foreground hover:text-destructive" />
-                        </Button>
+                        {account.has_transactions ? (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                disabled
+                                className="size-8"
+                              >
+                                <Trash2 className="size-4 text-muted-foreground" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              该账户存在交易记录，无法删除
+                            </TooltipContent>
+                          </Tooltip>
+                        ) : (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            disabled={isDeleting || isUpdating}
+                            onClick={() => setPendingDelete(account)}
+                            className="size-8"
+                          >
+                            <Trash2 className="size-4 text-muted-foreground hover:text-destructive" />
+                          </Button>
+                        )}
                       </div>
                     </div>
                   )}
@@ -261,6 +300,30 @@ export function AccountList({
           );
         })}
       </AnimatePresence>
+
+      <AlertDialog open={!!pendingDelete} onOpenChange={(open) => !open && setPendingDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>确认删除账户？</AlertDialogTitle>
+            <AlertDialogDescription>
+              删除后无法恢复。如果该账户存在交易记录，将无法删除。
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (pendingDelete) {
+                  onDelete(pendingDelete.id);
+                  setPendingDelete(null);
+                }
+              }}
+            >
+              删除
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

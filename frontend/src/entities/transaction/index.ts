@@ -14,6 +14,8 @@ export type {
   DailySummary,
   AccountSummary,
   QuickTransactionCreate,
+  PaginatedTransactions,
+  TransactionFilters,
 } from "./types";
 export {
   transactionKeys,

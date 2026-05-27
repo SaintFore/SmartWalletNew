@@ -3,9 +3,9 @@ import { Card, CardContent } from "@/shared/ui/card";
 import { formatCurrency } from "@/shared/lib/format";
 
 interface SummaryCardsProps {
-  totalIncome: number;
-  totalExpense: number;
-  net: number;
+  totalIncome: number | string;
+  totalExpense: number | string;
+  net: number | string;
 }
 
 export function SummaryCards({
@@ -51,7 +51,7 @@ export function SummaryCards({
           </div>
           <p
             className={`text-2xl font-semibold tracking-tight ${
-              net >= 0 ? "text-emerald-500" : "text-red-500"
+              Number(net) >= 0 ? "text-emerald-500" : "text-red-500"
             }`}
           >
             {formatCurrency(net)}

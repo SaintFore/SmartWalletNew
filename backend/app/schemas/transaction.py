@@ -90,3 +90,10 @@ class QuickTransactionCreate(SQLModel):
     text: str
     date: Date | None = None
     description: str | None = None
+
+
+class PaginatedTransactions(SQLModel):
+    items: list[TransactionRead]
+    total: int
+    limit: int
+    offset: int

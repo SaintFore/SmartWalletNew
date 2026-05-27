@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from sqlmodel import SQLModel
 
 
@@ -13,6 +15,11 @@ class AccountCreate(AccountBase):
 
 class AccountRead(AccountBase):
     id: int
+
+
+class AccountWithBalance(AccountRead):
+    balance: Decimal
+    has_transactions: bool = False
 
 
 class AccountUpdate(SQLModel):

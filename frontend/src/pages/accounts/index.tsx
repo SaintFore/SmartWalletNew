@@ -26,6 +26,11 @@ export default function AccountsPage() {
     createMutation.mutate(data);
   }
 
+  const createErrorMessage = createMutation.isError
+    ? (createMutation.error as { detail?: string })?.detail ||
+      "创建账户失败"
+    : undefined;
+
   function handleUpdate(id: number, data: AccountUpdateValues) {
     updateMutation.mutate({ id, data });
   }
@@ -70,7 +75,7 @@ export default function AccountsPage() {
           <AccountForm
             onSubmit={handleSubmit}
             isPending={createMutation.isPending}
-            isError={createMutation.isError}
+            errorMessage={createErrorMessage}
           />
         </motion.div>
 

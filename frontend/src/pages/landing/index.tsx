@@ -182,7 +182,7 @@ export default function LandingPage() {
                 <p className="text-sm text-muted-foreground">Net</p>
                 <p
                   className={`text-xl font-semibold ${
-                    summary && summary.net >= 0
+                    summary && Number(summary.net) >= 0
                       ? "text-emerald-500"
                       : "text-red-500"
                   }`}
@@ -229,9 +229,9 @@ export default function LandingPage() {
             </div>
           </motion.div>
 
-          {transactions && transactions.length > 0 ? (
+          {transactions && transactions.items && transactions.items.length > 0 ? (
             <div className="flex flex-col gap-3">
-              {transactions.slice(0, 5).map((transaction, i) => (
+              {transactions.items.slice(0, 5).map((transaction: { id: number; type: string; name?: string | null; date: string; amount: string; category_id: number; description?: string | null }, i: number) => (
                 <motion.div
                   key={transaction.id}
                   initial={{ opacity: 0, y: 10 }}

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowUpRight,
@@ -21,7 +21,7 @@ const ease = { duration: 0.4, ease: [0.22, 1, 0.36, 1] as const };
 interface Transaction {
   id: number;
   name?: string | null;
-  amount: number;
+  amount: number | string;
   type: string;
   category_id: number;
   account_id: number;
@@ -63,11 +63,34 @@ interface TransactionDraft {
   description: string;
 }
 
-function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString("zh-CN", {
-    month: "2-digit",
-    day: "2-digit",
+function formatDateHeader(dateStr: string): string {
+  const date = new Date(dateStr);
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+
+  if (date.toDateString() === today.toDateString()) {
+    return "今天";
+  }
+  if (date.toDateString() === yesterday.toDateString()) {
+    return "昨天";
+  }
+  return date.toLocaleDateString("zh-CN", {
+    month: "long",
+    day: "numeric",
+    weekday: "short",
   });
+}
+
+function groupTransactionsByDate(transactions: Transaction[]): Map<string, Transaction[]> {
+  const groups = new Map<string, Transaction[]>();
+  for (const t of transactions) {
+    const dateKey = t.date.slice(0, 10);
+    const group = groups.get(dateKey) || [];
+    group.push(t);
+    groups.set(dateKey, group);
+  }
+  return groups;
 }
 
 function TransactionListSkeleton() {
@@ -102,6 +125,10 @@ export function TransactionList({
   isUpdating,
 }: TransactionListProps) {
   const [draft, setDraft] = useState<TransactionDraft | null>(null);
+  const groupedTransactions = useMemo(
+    () => groupTransactionsByDate(transactions),
+    [transactions],
+  );
 
   if (isLoading) {
     return <TransactionListSkeleton />;
@@ -171,212 +198,229 @@ export function TransactionList({
   }
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-6">
       <AnimatePresence mode="popLayout">
-        {transactions.map((transaction, i) => {
-          const category = categories.find(
-            (c) => c.id === transaction.category_id,
-          );
-          const isEditing = draft?.id === transaction.id;
-          return (
-            <motion.div
-              key={transaction.id}
-              layout
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ delay: i * 0.03, ...ease }}
-            >
-              <Card className="group overflow-hidden border-border/70 bg-card/80 shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/25 hover:shadow-lg hover:shadow-primary/5">
-                <CardContent className="p-4">
-                  {isEditing && draft ? (
-                    <div className="flex flex-col gap-3">
-                      <div className="grid grid-cols-2 gap-3">
-                        <Input
-                          aria-label="Amount"
-                          type="number"
-                          step="0.01"
-                          min="0.01"
-                          value={draft.amount}
-                          onChange={(e) =>
-                            setDraft({ ...draft, amount: e.target.value })
-                          }
-                          className="h-9"
-                          placeholder="Amount"
-                        />
-                        <Input
-                          aria-label="Name"
-                          value={draft.name}
-                          onChange={(e) =>
-                            setDraft({ ...draft, name: e.target.value })
-                          }
-                          className="h-9"
-                          placeholder="Name (optional)"
-                        />
-                      </div>
-                      <div className="grid grid-cols-2 gap-3">
-                        <select
-                          value={draft.type}
-                          onChange={(e) =>
-                            setDraft({
-                              ...draft,
-                              type: e.target.value as "expense" | "income",
-                            })
-                          }
-                          className="h-9 rounded-md border border-input bg-background px-3 text-sm"
-                        >
-                          <option value="expense">Expense</option>
-                          <option value="income">Income</option>
-                        </select>
-                        <select
-                          value={draft.category_id}
-                          onChange={(e) =>
-                            setDraft({ ...draft, category_id: e.target.value })
-                          }
-                          className="h-9 rounded-md border border-input bg-background px-3 text-sm"
-                        >
-                          <option value="" disabled>
-                            Category
-                          </option>
-                          {categories.map((c) => (
-                            <option key={c.id} value={c.id}>
-                              {c.icon ? `${c.icon} ` : ""}
-                              {c.name}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <div className="grid grid-cols-2 gap-3">
-                        <select
-                          value={draft.account_id}
-                          onChange={(e) =>
-                            setDraft({ ...draft, account_id: e.target.value })
-                          }
-                          className="h-9 rounded-md border border-input bg-background px-3 text-sm"
-                        >
-                          <option value="" disabled>
-                            Account
-                          </option>
-                          {accounts.map((a) => (
-                            <option key={a.id} value={a.id}>
-                              {a.name}
-                            </option>
-                          ))}
-                        </select>
-                        <Input
-                          aria-label="Date"
-                          type="date"
-                          value={draft.date}
-                          onChange={(e) =>
-                            setDraft({ ...draft, date: e.target.value })
-                          }
-                          className="h-9"
-                        />
-                      </div>
-                      <Input
-                        aria-label="Description"
-                        value={draft.description}
-                        onChange={(e) =>
-                          setDraft({ ...draft, description: e.target.value })
-                        }
-                        className="h-9"
-                        placeholder="Description (optional)"
-                      />
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setDraft(null)}
-                          disabled={isUpdating}
-                        >
-                          <X className="size-4" data-icon="inline-start" />
-                          Cancel
-                        </Button>
-                        <Button
-                          type="button"
-                          size="sm"
-                          onClick={saveDraft}
-                          disabled={
-                            isUpdating ||
-                            !draft.amount ||
-                            parseFloat(draft.amount) <= 0
-                          }
-                        >
-                          <Check className="size-4" data-icon="inline-start" />
-                          Save
-                        </Button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`size-11 rounded-2xl flex items-center justify-center shadow-inner ${
-                            transaction.type === "income"
-                              ? "bg-emerald-500/15"
-                              : "bg-red-500/15"
-                          }`}
-                        >
-                          {category?.icon ? (
-                            <span className="text-xl">{category.icon}</span>
-                          ) : transaction.type === "income" ? (
-                            <ArrowUpRight className="size-5 text-emerald-500" />
-                          ) : (
-                            <ArrowDownRight className="size-5 text-red-500" />
-                          )}
-                        </div>
-                        <div>
-                          <p className="font-medium">
-                            {transaction.name || category?.name || "Untitled"}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {formatDate(transaction.date)}
-                            {transaction.description
-                              ? ` · ${transaction.description}`
-                              : ""}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <p
-                          className={`font-semibold tracking-tight ${
-                            transaction.type === "income"
-                              ? "text-emerald-500"
-                              : "text-red-500"
-                          }`}
-                        >
-                          {transaction.type === "income" ? "+" : "-"}
-                          {formatCurrency(transaction.amount)}
-                        </p>
-                        <div className="flex opacity-0 transition-opacity group-hover:opacity-100">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            disabled={isUpdating || isDeleting}
-                            onClick={() => startEditing(transaction)}
-                            className="size-8"
-                          >
-                            <Pencil className="size-3 text-muted-foreground hover:text-primary" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            disabled={isDeleting || isUpdating}
-                            onClick={() => onDelete(transaction.id)}
-                            className="size-8"
-                          >
-                            <Trash2 className="size-3 text-muted-foreground hover:text-destructive" />
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </motion.div>
-          );
-        })}
+        {Array.from(groupedTransactions.entries()).map(([dateKey, dayTransactions]) => (
+          <motion.div
+            key={dateKey}
+            layout
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={ease}
+          >
+            <div className="mb-2">
+              <h3 className="text-sm font-medium text-muted-foreground">
+                {formatDateHeader(dateKey)}
+              </h3>
+            </div>
+            <div className="flex flex-col gap-2">
+              {dayTransactions.map((transaction, i) => {
+                const category = categories.find(
+                  (c) => c.id === transaction.category_id,
+                );
+                const isEditing = draft?.id === transaction.id;
+                return (
+                  <motion.div
+                    key={transaction.id}
+                    layout
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{ delay: i * 0.03, ...ease }}
+                  >
+                    <Card className="group overflow-hidden border-border/70 bg-card/80 shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/25 hover:shadow-lg hover:shadow-primary/5">
+                      <CardContent className="p-4">
+                        {isEditing && draft ? (
+                          <div className="flex flex-col gap-3">
+                            <div className="grid grid-cols-2 gap-3">
+                              <Input
+                                aria-label="Amount"
+                                type="number"
+                                step="0.01"
+                                min="0.01"
+                                value={draft.amount}
+                                onChange={(e) =>
+                                  setDraft({ ...draft, amount: e.target.value })
+                                }
+                                className="h-9"
+                                placeholder="Amount"
+                              />
+                              <Input
+                                aria-label="Name"
+                                value={draft.name}
+                                onChange={(e) =>
+                                  setDraft({ ...draft, name: e.target.value })
+                                }
+                                className="h-9"
+                                placeholder="Name (optional)"
+                              />
+                            </div>
+                            <div className="grid grid-cols-2 gap-3">
+                              <select
+                                value={draft.type}
+                                onChange={(e) =>
+                                  setDraft({
+                                    ...draft,
+                                    type: e.target.value as "expense" | "income",
+                                  })
+                                }
+                                className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+                              >
+                                <option value="expense">Expense</option>
+                                <option value="income">Income</option>
+                              </select>
+                              <select
+                                value={draft.category_id}
+                                onChange={(e) =>
+                                  setDraft({ ...draft, category_id: e.target.value })
+                                }
+                                className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+                              >
+                                <option value="" disabled>
+                                  Category
+                                </option>
+                                {categories.map((c) => (
+                                  <option key={c.id} value={c.id}>
+                                    {c.icon ? `${c.icon} ` : ""}
+                                    {c.name}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                            <div className="grid grid-cols-2 gap-3">
+                              <select
+                                value={draft.account_id}
+                                onChange={(e) =>
+                                  setDraft({ ...draft, account_id: e.target.value })
+                                }
+                                className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+                              >
+                                <option value="" disabled>
+                                  Account
+                                </option>
+                                {accounts.map((a) => (
+                                  <option key={a.id} value={a.id}>
+                                    {a.name}
+                                  </option>
+                                ))}
+                              </select>
+                              <Input
+                                aria-label="Date"
+                                type="date"
+                                value={draft.date}
+                                onChange={(e) =>
+                                  setDraft({ ...draft, date: e.target.value })
+                                }
+                                className="h-9"
+                              />
+                            </div>
+                            <Input
+                              aria-label="Description"
+                              value={draft.description}
+                              onChange={(e) =>
+                                setDraft({ ...draft, description: e.target.value })
+                              }
+                              className="h-9"
+                              placeholder="Description (optional)"
+                            />
+                            <div className="flex justify-end gap-2">
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setDraft(null)}
+                                disabled={isUpdating}
+                              >
+                                <X className="size-4" data-icon="inline-start" />
+                                Cancel
+                              </Button>
+                              <Button
+                                type="button"
+                                size="sm"
+                                onClick={saveDraft}
+                                disabled={
+                                  isUpdating ||
+                                  !draft.amount ||
+                                  parseFloat(draft.amount) <= 0
+                                }
+                              >
+                                <Check className="size-4" data-icon="inline-start" />
+                                Save
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <div
+                                className={`size-11 rounded-2xl flex items-center justify-center shadow-inner ${
+                                  transaction.type === "income"
+                                    ? "bg-emerald-500/15"
+                                    : "bg-red-500/15"
+                                }`}
+                              >
+                                {category?.icon ? (
+                                  <span className="text-xl">{category.icon}</span>
+                                ) : transaction.type === "income" ? (
+                                  <ArrowUpRight className="size-5 text-emerald-500" />
+                                ) : (
+                                  <ArrowDownRight className="size-5 text-red-500" />
+                                )}
+                              </div>
+                              <div>
+                                <p className="font-medium">
+                                  {transaction.name || category?.name || "Untitled"}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  {transaction.description
+                                    ? transaction.description
+                                    : ""}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <p
+                                className={`font-semibold tracking-tight ${
+                                  transaction.type === "income"
+                                    ? "text-emerald-500"
+                                    : "text-red-500"
+                                }`}
+                              >
+                                {transaction.type === "income" ? "+" : "-"}
+                                {formatCurrency(transaction.amount)}
+                              </p>
+                              <div className="flex opacity-0 transition-opacity group-hover:opacity-100">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  disabled={isUpdating || isDeleting}
+                                  onClick={() => startEditing(transaction)}
+                                  className="size-8"
+                                >
+                                  <Pencil className="size-3 text-muted-foreground hover:text-primary" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  disabled={isDeleting || isUpdating}
+                                  onClick={() => onDelete(transaction.id)}
+                                  className="size-8"
+                                >
+                                  <Trash2 className="size-3 text-muted-foreground hover:text-destructive" />
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </motion.div>
+        ))}
       </AnimatePresence>
     </div>
   );

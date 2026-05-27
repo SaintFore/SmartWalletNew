@@ -1,11 +1,13 @@
+from datetime import date
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlmodel import Session
 
 from app.db.session import get_session
 from app.models.transaction import Transaction
 from app.schemas.transaction import (
+    PaginatedTransactions,
     QuickTransactionCreate,
     TransactionCreate,
     TransactionRead,
@@ -19,6 +21,7 @@ from app.services.transaction_service import (
     get_all,
     get_by_id,
     get_by_type,
+    get_filtered,
     get_monthly_summary,
     update,
 )
@@ -26,15 +29,31 @@ from app.services.transaction_service import (
 router = APIRouter(prefix="/transactions", tags=["transactions"])
 
 
-@router.get("", response_model=list[TransactionRead])
+@router.get("", response_model=PaginatedTransactions)
 def read_transactions(
     session: Annotated[Session, Depends(get_session)],
     type: str | None = None,
-) -> list[Transaction]:
-    """获取所有交易，可按类型过滤。"""
-    if type:
-        return get_by_type(session, type)
-    return get_all(session)
+    account_id: int | None = None,
+    category_id: int | None = None,
+    date_from: date | None = None,
+    date_to: date | None = None,
+    search: str | None = None,
+    limit: int = Query(default=50, ge=1, le=200),
+    offset: int = Query(default=0, ge=0),
+) -> PaginatedTransactions:
+    """获取交易列表，支持筛选和分页。"""
+    transactions, total = get_filtered(
+        session,
+        type=type,
+        account_id=account_id,
+        category_id=category_id,
+        date_from=date_from,
+        date_to=date_to,
+        search=search,
+        limit=limit,
+        offset=offset,
+    )
+    return PaginatedTransactions(items=transactions, total=total, limit=limit, offset=offset)
 
 
 @router.get("/{transaction_id}", response_model=TransactionRead)

@@ -32,13 +32,64 @@ def get_by_id(session: Session, transaction_id: int) -> Transaction | None:
 
 
 def get_by_type(session: Session, transaction_type: str) -> list[Transaction]:
-    statement = select(Transaction).where(Transaction.type == transaction_type)
+    statement = select(Transaction).where(Transaction.type == transaction_type).order_by(col(Transaction.date).desc(), col(Transaction.id).desc())
     return list(session.exec(statement).all())
 
 
 def get_all(session: Session) -> list[Transaction]:
-    statement = select(Transaction)
+    statement = select(Transaction).order_by(col(Transaction.date).desc(), col(Transaction.id).desc())
     return list(session.exec(statement).all())
+
+
+def get_filtered(
+    session: Session,
+    *,
+    type: str | None = None,
+    account_id: int | None = None,
+    category_id: int | None = None,
+    date_from: date | None = None,
+    date_to: date | None = None,
+    search: str | None = None,
+    limit: int = 50,
+    offset: int = 0,
+) -> tuple[list[Transaction], int]:
+    """获取筛选后的交易列表，返回 (transactions, total_count)。"""
+    statement = select(Transaction)
+
+    if type:
+        statement = statement.where(Transaction.type == type)
+    if account_id:
+        statement = statement.where(Transaction.account_id == account_id)
+    if category_id:
+        statement = statement.where(Transaction.category_id == category_id)
+    if date_from:
+        statement = statement.where(col(Transaction.date) >= date_from)
+    if date_to:
+        statement = statement.where(col(Transaction.date) <= date_to)
+    if search:
+        from sqlalchemy import or_
+
+        pattern = f"%{search}%"
+        conditions = []
+        if hasattr(Transaction, 'name'):
+            conditions.append(col(Transaction.name).like(pattern))
+        if hasattr(Transaction, 'description'):
+            conditions.append(col(Transaction.description).like(pattern))
+        if hasattr(Transaction, 'raw_input'):
+            conditions.append(col(Transaction.raw_input).like(pattern))
+        if conditions:
+            statement = statement.where(or_(*conditions))
+
+    from sqlmodel import func
+
+    count_statement = select(func.count()).select_from(statement.subquery())
+    total = session.exec(count_statement).one()
+
+    statement = statement.order_by(col(Transaction.date).desc(), col(Transaction.id).desc())
+    statement = statement.offset(offset).limit(limit)
+    transactions = list(session.exec(statement).all())
+
+    return transactions, total
 
 
 def create(transaction_in: TransactionCreate, session: Session) -> Transaction:

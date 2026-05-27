@@ -56,13 +56,13 @@ export default function AnalyticsPage() {
 
   // 计算环比变化
   const incomeChange = prevSummary
-    ? (((summary?.total_income || 0) - prevSummary.total_income) /
-        (prevSummary.total_income || 1)) *
+    ? ((Number(summary?.total_income || 0) - Number(prevSummary.total_income)) /
+        (Number(prevSummary.total_income) || 1)) *
       100
     : 0;
   const expenseChange = prevSummary
-    ? (((summary?.total_expense || 0) - prevSummary.total_expense) /
-        (prevSummary.total_expense || 1)) *
+    ? ((Number(summary?.total_expense || 0) - Number(prevSummary.total_expense)) /
+        (Number(prevSummary.total_expense) || 1)) *
       100
     : 0;
 
@@ -77,23 +77,23 @@ export default function AnalyticsPage() {
           name: category?.name || "Unknown",
         };
       })
-      .sort((a, b) => b.total - a.total) || [];
+      .sort((a, b) => Number(b.total) - Number(a.total)) || [];
 
   // 准备饼图数据
   const pieData = categoryDetails.map((cat) => ({
     name: cat.name,
-    value: cat.total,
+    value: Number(cat.total),
   }));
 
   // 准备柱状图数据
   const barData = categoryDetails.slice(0, 6).map((cat) => ({
     name: cat.name,
-    value: cat.total,
+    value: Number(cat.total),
   }));
   const lineData =
     summary?.by_day.map((day) => ({
       name: new Date(day.date).getDate().toString(),
-      value: day.total_expense,
+      value: Number(day.total_expense),
     })) || [];
 
 
@@ -217,7 +217,7 @@ export default function AnalyticsPage() {
               <p className="text-sm text-muted-foreground">Net Balance</p>
               <p
                 className={`text-2xl font-semibold mt-1 ${
-                  (summary?.net || 0) >= 0 ? "text-emerald-500" : "text-red-500"
+                  Number(summary?.net || 0) >= 0 ? "text-emerald-500" : "text-red-500"
                 }`}
               >
                 {formatCurrency(summary?.net || 0)}
@@ -371,7 +371,7 @@ export default function AnalyticsPage() {
                   <BarChart
                     data={summary!.by_account.map((a) => ({
                       name: a.account_name,
-                      value: a.total_expense,
+                      value: Number(a.total_expense),
                     }))}
                     width={400}
                     height={280}
@@ -404,7 +404,7 @@ export default function AnalyticsPage() {
                   <BarChart
                     data={summary!.by_account.map((a) => ({
                       name: a.account_name,
-                      value: a.total_income,
+                      value: Number(a.total_income),
                       color: "rgb(16 185 129)",
                     }))}
                     width={400}
@@ -480,7 +480,7 @@ export default function AnalyticsPage() {
                           <p className="text-xs text-muted-foreground">Net</p>
                           <p
                             className={`text-sm font-medium ${
-                              account.net >= 0
+                              Number(account.net) >= 0
                                 ? "text-emerald-500"
                                 : "text-red-500"
                             }`}
