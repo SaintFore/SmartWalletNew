@@ -7,6 +7,7 @@ import {
   PieChart as PieChartIcon,
   BarChart3,
   Calendar,
+  Wallet,
 } from "lucide-react";
 import { useMonthlySummary } from "@/entities/transaction";
 import { useCategories } from "@/entities/category";
@@ -16,15 +17,9 @@ import { Button } from "@/shared/ui/button";
 import { Badge } from "@/shared/ui/badge";
 import { Card, CardContent } from "@/shared/ui/card";
 import { Separator } from "@/shared/ui/separator";
+import { formatCurrency } from "@/shared/lib/format";
 
 const ease = { duration: 0.4, ease: [0.22, 1, 0.36, 1] as const };
-
-function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat("zh-CN", {
-    style: "currency",
-    currency: "CNY",
-  }).format(amount);
-}
 
 function getMonthName(month: number): string {
   const months = [
@@ -351,6 +346,165 @@ export default function AnalyticsPage() {
               )}
             </CardContent>
           </Card>
+        </motion.div>
+
+        <Separator className="mb-8" />
+
+        {/* Account Breakdown */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.45, ...ease }}
+          >
+            <Card className="h-full">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <Wallet className="size-5 text-primary" />
+                  <h3 className="font-medium">Expense by Account</h3>
+                </div>
+                {isLoading ? (
+                  <div className="flex items-center justify-center h-64">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                  </div>
+                ) : (summary?.by_account?.length ?? 0) > 0 ? (
+                  <BarChart
+                    data={summary!.by_account.map((a) => ({
+                      name: a.account_name,
+                      value: a.total_expense,
+                    }))}
+                    width={400}
+                    height={280}
+                  />
+                ) : (
+                  <div className="flex items-center justify-center h-64 text-muted-foreground">
+                    No account data
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5, ...ease }}
+          >
+            <Card className="h-full">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <Wallet className="size-5 text-primary" />
+                  <h3 className="font-medium">Income by Account</h3>
+                </div>
+                {isLoading ? (
+                  <div className="flex items-center justify-center h-64">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                  </div>
+                ) : (summary?.by_account?.length ?? 0) > 0 ? (
+                  <BarChart
+                    data={summary!.by_account.map((a) => ({
+                      name: a.account_name,
+                      value: a.total_income,
+                      color: "rgb(16 185 129)",
+                    }))}
+                    width={400}
+                    height={280}
+                  />
+                ) : (
+                  <div className="flex items-center justify-center h-64 text-muted-foreground">
+                    No account data
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
+
+        {/* Account Details Grid */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.55, ...ease }}
+          className="mb-8"
+        >
+          <h2 className="text-lg font-medium mb-6">Account Breakdown</h2>
+          {isLoading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[1, 2, 3].map((i) => (
+                <Card key={i}>
+                  <CardContent className="p-4">
+                    <div className="animate-pulse">
+                      <div className="h-4 bg-muted rounded w-1/3 mb-2"></div>
+                      <div className="h-6 bg-muted rounded w-1/2"></div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (summary?.by_account?.length ?? 0) > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {summary!.by_account.map((account, i) => (
+                <motion.div
+                  key={account.account_id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.55 + i * 0.05, ...ease }}
+                >
+                  <Card className="hover:border-border hover:shadow-sm transition-all">
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="size-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                          <Wallet className="size-5 text-primary" />
+                        </div>
+                        <div>
+                          <p className="font-medium">{account.account_name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {account.count} transactions
+                          </p>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 text-center">
+                        <div>
+                          <p className="text-xs text-muted-foreground">Income</p>
+                          <p className="text-sm font-medium text-emerald-500">
+                            {formatCurrency(account.total_income)}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground">Expense</p>
+                          <p className="text-sm font-medium text-red-500">
+                            {formatCurrency(account.total_expense)}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground">Net</p>
+                          <p
+                            className={`text-sm font-medium ${
+                              account.net >= 0
+                                ? "text-emerald-500"
+                                : "text-red-500"
+                            }`}
+                          >
+                            {formatCurrency(account.net)}
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          ) : (
+            <Card>
+              <CardContent className="p-12 text-center">
+                <Wallet className="size-12 text-muted-foreground/40 mx-auto mb-3" />
+                <h3 className="font-medium text-lg mb-2">No account data</h3>
+                <p className="text-sm text-muted-foreground max-w-sm mx-auto">
+                  Start adding transactions to see account analytics.
+                </p>
+              </CardContent>
+            </Card>
+          )}
         </motion.div>
 
         <Separator className="mb-8" />

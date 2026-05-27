@@ -1,5 +1,5 @@
 [project]
-name = "SamrtWallet"
+name = "SmartWallet"
 version = "0.1.0"
 description = "An ai online wallet"
 readme = "README.md"

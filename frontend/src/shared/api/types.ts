@@ -276,6 +276,21 @@ export interface components {
             /** Net */
             net: number;
         };
+        /** AccountSummary */
+        AccountSummary: {
+            /** Account Id */
+            account_id: number;
+            /** Account Name */
+            account_name: string;
+            /** Total Expense */
+            total_expense: number;
+            /** Total Income */
+            total_income: number;
+            /** Net */
+            net: number;
+            /** Count */
+            count: number;
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -353,6 +368,8 @@ export interface components {
             by_category: components["schemas"]["CategorySummary"][];
             /** By Day */
             by_day: components["schemas"]["DailySummary"][];
+            /** By Account */
+            by_account: components["schemas"]["AccountSummary"][];
         };
         /** TransactionUpdate */
         TransactionUpdate: {

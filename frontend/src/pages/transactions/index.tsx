@@ -5,6 +5,7 @@ import {
   useMonthlySummary,
   useTransactions,
   type TransactionCreateValues,
+  type TransactionUpdateValues,
   type QuickTransactionCreateValues,
 } from "@/entities/transaction";
 import {
@@ -13,6 +14,7 @@ import {
   useCreateTransaction,
 } from "@/features/create-transaction";
 import { useDeleteTransaction } from "@/features/delete-transaction";
+import { useUpdateTransaction } from "@/features/update-transaction";
 import { useAccounts } from "@/entities/account";
 import { useCategories } from "@/entities/category";
 import { AppLayout } from "@/widgets/app-layout";
@@ -37,6 +39,7 @@ export default function TransactionsPage() {
   const createMutation = useCreateTransaction();
   const quickCreateMutation = useCreateQuickTransaction();
   const deleteMutation = useDeleteTransaction();
+  const updateMutation = useUpdateTransaction();
 
   const now = new Date();
   const { data: summary } = useMonthlySummary(
@@ -51,6 +54,10 @@ export default function TransactionsPage() {
     quickCreateMutation.mutate(data);
   }
 
+
+  function handleUpdate(id: number, data: TransactionUpdateValues) {
+    updateMutation.mutate({ id, body: data });
+  }
 
   function handleDelete(id: number) {
     deleteMutation.mutate(id);
@@ -159,10 +166,13 @@ export default function TransactionsPage() {
           <TransactionList
             transactions={transactions || []}
             categories={categories || []}
+            accounts={accounts || []}
             isLoading={isLoading}
             isError={isError}
             onDelete={handleDelete}
             isDeleting={deleteMutation.isPending}
+            onUpdate={handleUpdate}
+            isUpdating={updateMutation.isPending}
           />
         </motion.div>
       </div>

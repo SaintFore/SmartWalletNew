@@ -1,8 +1,7 @@
 import { Suspense, lazy } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router";
 import { ErrorBoundary } from "@/shared/ui/ErrorBoundary";
-import LandingPage from "@/pages/landing";
-
+const LandingPage = lazy(() => import("@/pages/landing"));
 const CategoriesPage = lazy(() => import("@/pages/categories"));
 const AccountsPage = lazy(() => import("@/pages/accounts"));
 const TransactionsPage = lazy(() => import("@/pages/transactions"));
@@ -22,7 +21,7 @@ function withSuspense(children: React.ReactNode) {
 }
 
 const router = createBrowserRouter([
-  { path: "/", element: <LandingPage /> },
+  { path: "/", element: withSuspense(<LandingPage />) },
   { path: "/categories", element: withSuspense(<CategoriesPage />) },
   { path: "/accounts", element: withSuspense(<AccountsPage />) },
   { path: "/transactions", element: withSuspense(<TransactionsPage />) },

@@ -4,9 +4,11 @@ from decimal import Decimal
 
 from sqlmodel import Session, col, select
 
+from app.models.account import Account
 from app.models.category import Category
 from app.models.transaction import Transaction
 from app.schemas.transaction import (
+    AccountSummary,
     CategorySummary,
     DailySummary,
     TransactionCreate,
@@ -94,14 +96,24 @@ def get_monthly_summary(year: int, month: int, session: Session) -> TransactionS
     total_income = Decimal("0")
     category_totals: dict[int, CategoryTotal] = {}
     daily_totals: dict[date, dict[str, Decimal]] = {}
+    account_totals: dict[int, dict[str, Decimal | int | str]] = {}
 
     category_ids = {transaction.category_id for transaction in transactions}
+    account_ids = {transaction.account_id for transaction in transactions}
     categories_by_id = {
         category.id: category
         for category in session.exec(
             select(Category).where(col(Category.id).in_(category_ids))
         ).all()
         if category.id is not None
+    }
+
+    accounts_by_id = {
+        account.id: account
+        for account in session.exec(
+            select(Account).where(col(Account.id).in_(account_ids))
+        ).all()
+        if account.id is not None
     }
 
     for transaction in transactions:
@@ -132,6 +144,21 @@ def get_monthly_summary(year: int, month: int, session: Session) -> TransactionS
         else:
             day_total["total_expense"] += transaction.amount
 
+        if transaction.account_id not in account_totals:
+            account = accounts_by_id.get(transaction.account_id)
+            account_totals[transaction.account_id] = {
+                "account_name": account.name if account else "Unknown",
+                "total_expense": Decimal("0"),
+                "total_income": Decimal("0"),
+                "count": 0,
+            }
+        acct = account_totals[transaction.account_id]
+        if transaction.type == "income":
+            acct["total_income"] = acct["total_income"] + transaction.amount  # type: ignore[assignment]
+        else:
+            acct["total_expense"] = acct["total_expense"] + transaction.amount  # type: ignore[assignment]
+        acct["count"] = acct["count"] + 1  # type: ignore[assignment]
+
     by_category = [
         CategorySummary(
             category_id=data.category_id,
@@ -153,10 +180,23 @@ def get_monthly_summary(year: int, month: int, session: Session) -> TransactionS
         for day, data in sorted(daily_totals.items())
     ]
 
+    by_account = [
+        AccountSummary(
+            account_id=account_id,
+            account_name=data["account_name"],
+            total_expense=data["total_expense"],
+            total_income=data["total_income"],
+            net=data["total_income"] - data["total_expense"],
+            count=data["count"],
+        )
+        for account_id, data in account_totals.items()
+    ]
+
     return TransactionSummary(
         total_expense=total_expense,
         total_income=total_income,
         net=total_income - total_expense,
         by_category=by_category,
         by_day=by_day,
+        by_account=by_account,
     )

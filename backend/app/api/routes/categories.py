@@ -6,7 +6,7 @@ from sqlmodel import Session
 from app.db.session import get_session
 from app.models.category import Category
 from app.schemas.category import CategoryCreate, CategoryRead, CategoryUpdate
-from app.services.category_service import CategoryInUseError, create, delete, get, get_all, update
+from app.services.category_service import CategoryInUseError, create, delete, get_all, get_by_id, update
 
 router = APIRouter(prefix="/categories", tags=["categories"])
 
@@ -15,12 +15,12 @@ router = APIRouter(prefix="/categories", tags=["categories"])
 def read_categories(
     session: Annotated[Session, Depends(get_session)],
 ) -> list[Category]:
-    return get(session)
+    return get_all(session)
 
 
 @router.get("/{category_id}", response_model=CategoryRead)
 def read_category(category_id: int, session: Annotated[Session, Depends(get_session)]) -> Category:
-    category = get_all(session, category_id)
+    category = get_by_id(session, category_id)
     if not category:
         raise HTTPException(status_code=404, detail="category not found")
     return category

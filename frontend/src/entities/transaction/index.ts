@@ -12,6 +12,7 @@ export type {
   TransactionUpdate,
   TransactionSummary,
   DailySummary,
+  AccountSummary,
   QuickTransactionCreate,
 } from "./types";
 export {

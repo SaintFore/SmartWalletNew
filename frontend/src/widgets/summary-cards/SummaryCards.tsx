@@ -1,17 +1,11 @@
 import { TrendingUp, TrendingDown, DollarSign } from "lucide-react";
 import { Card, CardContent } from "@/shared/ui/card";
+import { formatCurrency } from "@/shared/lib/format";
 
 interface SummaryCardsProps {
   totalIncome: number;
   totalExpense: number;
   net: number;
-}
-
-function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat("zh-CN", {
-    style: "currency",
-    currency: "CNY",
-  }).format(amount);
 }
 
 export function SummaryCards({

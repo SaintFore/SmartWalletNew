@@ -9,11 +9,11 @@ class CategoryInUseError(ValueError):
     pass
 
 
-def get_all(session: Session, category_id: int) -> Category | None:
+def get_by_id(session: Session, category_id: int) -> Category | None:
     return session.get(Category, category_id)
 
 
-def get(session: Session) -> list[Category]:
+def get_all(session: Session) -> list[Category]:
     statement = select(Category)
     return list(session.exec(statement).all())
 

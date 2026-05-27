@@ -18,6 +18,7 @@ import {
   LayoutDashboard,
 } from "lucide-react";
 import { useDarkMode } from "@/shared/lib/use-dark-mode";
+import { formatCurrency } from "@/shared/lib/format";
 import { useCategories } from "@/entities/category";
 import { useMonthlySummary, useTransactions } from "@/entities/transaction";
 import { Button } from "@/shared/ui/button";
@@ -26,13 +27,6 @@ import { Card, CardContent } from "@/shared/ui/card";
 import { Separator } from "@/shared/ui/separator";
 
 const ease = { duration: 0.4, ease: [0.22, 1, 0.36, 1] as const };
-
-function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat("zh-CN", {
-    style: "currency",
-    currency: "CNY",
-  }).format(amount);
-}
 
 export default function LandingPage() {
   const { dark, toggle } = useDarkMode();

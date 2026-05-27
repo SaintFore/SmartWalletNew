@@ -68,6 +68,14 @@ class DailySummary(SQLModel):
     net: Decimal
 
 
+class AccountSummary(SQLModel):
+    account_id: int
+    account_name: str
+    total_expense: Decimal
+    total_income: Decimal
+    net: Decimal
+    count: int
+
 
 class TransactionSummary(SQLModel):
     total_expense: Decimal
@@ -75,6 +83,7 @@ class TransactionSummary(SQLModel):
     net: Decimal
     by_category: list[CategorySummary]
     by_day: list[DailySummary]
+    by_account: list[AccountSummary]
 
 
 class QuickTransactionCreate(SQLModel):
