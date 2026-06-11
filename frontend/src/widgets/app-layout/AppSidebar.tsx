@@ -3,6 +3,7 @@ import {
   DollarSign,
   Home,
   PieChart,
+  Table2,
   Wallet,
   WalletCards,
 } from "lucide-react";
@@ -26,6 +27,7 @@ const menuItems = [
   { path: "/accounts", label: "Accounts", icon: WalletCards },
   { path: "/transactions", label: "Transactions", icon: DollarSign },
   { path: "/analytics", label: "Analytics", icon: BarChart3 },
+  { path: "/spreadsheet", label: "Spreadsheet", icon: Table2 },
 ];
 
 export function AppSidebar() {

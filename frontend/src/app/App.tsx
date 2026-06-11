@@ -6,6 +6,7 @@ const CategoriesPage = lazy(() => import("@/pages/categories"));
 const AccountsPage = lazy(() => import("@/pages/accounts"));
 const TransactionsPage = lazy(() => import("@/pages/transactions"));
 const AnalyticsPage = lazy(() => import("@/pages/analytics"));
+const SpreadsheetPage = lazy(() => import("@/pages/spreadsheet"));
 const NotFoundPage = lazy(() => import("@/pages/not-found"));
 
 function PageFallback() {
@@ -26,6 +27,7 @@ const router = createBrowserRouter([
   { path: "/accounts", element: withSuspense(<AccountsPage />) },
   { path: "/transactions", element: withSuspense(<TransactionsPage />) },
   { path: "/analytics", element: withSuspense(<AnalyticsPage />) },
+  { path: "/spreadsheet", element: withSuspense(<SpreadsheetPage />) },
   { path: "*", element: withSuspense(<NotFoundPage />) },
 ]);
 
