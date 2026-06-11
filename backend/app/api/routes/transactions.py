@@ -1,5 +1,5 @@
 from datetime import date
-from typing import Annotated
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlmodel import Session
@@ -18,9 +18,7 @@ from app.services.transaction_parser import TransactionParseError, parse_quick_t
 from app.services.transaction_service import (
     create,
     delete,
-    get_all,
     get_by_id,
-    get_by_type,
     get_filtered,
     get_monthly_summary,
     update,
@@ -32,12 +30,13 @@ router = APIRouter(prefix="/transactions", tags=["transactions"])
 @router.get("", response_model=PaginatedTransactions)
 def read_transactions(
     session: Annotated[Session, Depends(get_session)],
-    type: str | None = None,
+    type: Literal["expense", "income", "transfer"] | None = None,
     account_id: int | None = None,
     category_id: int | None = None,
     date_from: date | None = None,
     date_to: date | None = None,
     search: str | None = None,
+    tag: str | None = None,
     limit: int = Query(default=50, ge=1, le=200),
     offset: int = Query(default=0, ge=0),
 ) -> PaginatedTransactions:
@@ -50,10 +49,23 @@ def read_transactions(
         date_from=date_from,
         date_to=date_to,
         search=search,
+        tag=tag,
         limit=limit,
         offset=offset,
     )
-    return PaginatedTransactions(items=transactions, total=total, limit=limit, offset=offset)
+    return PaginatedTransactions(items=transactions, total=total, limit=limit, offset=offset)  # type: ignore[arg-type]
+
+
+@router.get("/summary/monthly/{year}/{month}", response_model=TransactionSummary)
+def get_monthly_transaction_summary(
+    year: int,
+    month: int,
+    session: Annotated[Session, Depends(get_session)],
+) -> TransactionSummary:
+    """获取指定月份的交易汇总。"""
+    if month < 1 or month > 12:
+        raise HTTPException(status_code=400, detail="Month must be between 1 and 12")
+    return get_monthly_summary(year, month, session)
 
 
 @router.get("/{transaction_id}", response_model=TransactionRead)
@@ -74,7 +86,19 @@ def create_transaction(
     session: Annotated[Session, Depends(get_session)],
 ) -> Transaction:
     """创建新交易。"""
+    # 校验外键存在性
+    from app.models.account import Account
+    from app.models.category import Category
+
+    if not session.get(Account, transaction_in.account_id):
+        raise HTTPException(status_code=422, detail="Account not found")
+    if not session.get(Category, transaction_in.category_id):
+        raise HTTPException(status_code=422, detail="Category not found")
+    if transaction_in.to_account_id is not None:
+        if not session.get(Account, transaction_in.to_account_id):
+            raise HTTPException(status_code=422, detail="Target account not found")
     return create(transaction_in, session)
+
 
 @router.post("/quick", response_model=TransactionRead)
 def create_quick_transaction(
@@ -111,15 +135,3 @@ def update_transaction(
     if not transaction:
         raise HTTPException(status_code=404, detail="Transaction not found")
     return transaction
-
-
-@router.get("/summary/monthly/{year}/{month}", response_model=TransactionSummary)
-def get_monthly_transaction_summary(
-    year: int,
-    month: int,
-    session: Annotated[Session, Depends(get_session)],
-) -> TransactionSummary:
-    """获取指定月份的交易汇总。"""
-    if month < 1 or month > 12:
-        raise HTTPException(status_code=400, detail="Month must be between 1 and 12")
-    return get_monthly_summary(year, month, session)

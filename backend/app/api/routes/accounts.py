@@ -11,7 +11,6 @@ from app.services.account_service import (
     AccountNameDuplicateError,
     create,
     delete,
-    get_all,
     get_all_with_balance,
     get_by_id,
     update,

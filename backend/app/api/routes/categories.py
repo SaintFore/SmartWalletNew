@@ -6,7 +6,15 @@ from sqlmodel import Session
 from app.db.session import get_session
 from app.models.category import Category
 from app.schemas.category import CategoryCreate, CategoryRead, CategoryUpdate
-from app.services.category_service import CategoryInUseError, create, delete, get_all, get_by_id, update
+from app.services.category_service import (
+    CategoryInUseError,
+    CategoryNameDuplicateError,
+    create,
+    delete,
+    get_all,
+    get_by_id,
+    update,
+)
 
 router = APIRouter(prefix="/categories", tags=["categories"])
 
@@ -22,7 +30,7 @@ def read_categories(
 def read_category(category_id: int, session: Annotated[Session, Depends(get_session)]) -> Category:
     category = get_by_id(session, category_id)
     if not category:
-        raise HTTPException(status_code=404, detail="category not found")
+        raise HTTPException(status_code=404, detail="Category not found")
     return category
 
 
@@ -31,7 +39,10 @@ def create_new_category(
     category_in: CategoryCreate,
     session: Annotated[Session, Depends(get_session)],
 ) -> Category:
-    return create(category_in, session)
+    try:
+        return create(category_in, session)
+    except CategoryNameDuplicateError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
 
 
 @router.delete("/{category_id}", status_code=204)
@@ -41,7 +52,7 @@ def delete_n_category(category_id: int, session: Annotated[Session, Depends(get_
     except CategoryInUseError as exc:
         raise HTTPException(status_code=409, detail="Category has transactions") from exc
     if not category:
-        raise HTTPException(status_code=404, detail="category not found")
+        raise HTTPException(status_code=404, detail="Category not found")
 
 
 @router.patch("/{category_id}", response_model=CategoryRead)
@@ -50,7 +61,10 @@ def update_n_category(
     item_in: CategoryUpdate,
     session: Annotated[Session, Depends(get_session)],
 ) -> Category:
-    category = update(category_id, item_in, session)
+    try:
+        category = update(category_id, item_in, session)
+    except CategoryNameDuplicateError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
     if not category:
-        raise HTTPException(status_code=404, detail="category not found")
+        raise HTTPException(status_code=404, detail="Category not found")
     return category

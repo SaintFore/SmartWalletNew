@@ -68,7 +68,6 @@ def _parse_locally(quick_in: QuickTransactionCreate, session: Session) -> Transa
     if account.id is None or category.id is None:
         raise TransactionParseError("Parsed account or category is not persisted")
 
-
     name = _clean_name(text_without_amount, account.name, category.name) or category.name
     return TransactionCreate(
         name=name,
@@ -113,7 +112,10 @@ def _parse_with_ai(text: str) -> dict[str, Any] | None:
         content = data["choices"][0]["message"]["content"]
         parsed = json.loads(content)
         return parsed if isinstance(parsed, dict) else None
-    except (OSError, error.URLError, KeyError, IndexError, json.JSONDecodeError):
+    except (OSError, error.URLError, KeyError, IndexError, json.JSONDecodeError) as exc:
+        from loguru import logger
+
+        logger.warning("AI parsing failed, falling back to local: {}", exc)
         return None
 
 

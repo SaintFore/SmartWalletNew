@@ -2,7 +2,7 @@ from decimal import Decimal
 
 from sqlalchemy import case
 from sqlalchemy.exc import IntegrityError
-from sqlmodel import Session, col, func, select
+from sqlmodel import Session, func, select
 
 from app.models.account import Account
 from app.models.transaction import Transaction
@@ -27,27 +27,20 @@ def get_all_with_balance(session: Session) -> list[AccountWithBalance]:
     accounts = get_all(session)
 
     # 计算每个账户的余额：收入为正，支出为负
-    balance_stmt = (
-        select(
-            Transaction.account_id,
-            func.sum(
-                case(
-                    (Transaction.type == "income", Transaction.amount),
-                    else_=-Transaction.amount,
-                )
-            ).label("balance"),
-        )
-        .group_by(Transaction.account_id)
-    )
+    balance_stmt = select(
+        Transaction.account_id,
+        func.sum(
+            case(
+                (Transaction.type == "income", Transaction.amount),  # type: ignore[arg-type]
+                else_=-Transaction.amount,
+            )
+        ).label("balance"),
+    ).group_by(Transaction.account_id)  # type: ignore[arg-type]
     balance_results = session.exec(balance_stmt).all()
-    balance_map: dict[int, Decimal] = {
-        row[0]: row[1] or Decimal("0") for row in balance_results
-    }
+    balance_map: dict[int, Decimal] = {row[0]: row[1] or Decimal("0") for row in balance_results}
 
     # 查找有交易记录的账户
-    txn_account_ids = set(
-        session.exec(select(Transaction.account_id).distinct()).all()
-    )
+    txn_account_ids = set(session.exec(select(Transaction.account_id).distinct()).all())
 
     return [
         AccountWithBalance(
@@ -92,7 +85,7 @@ def create(account_in: AccountCreate, session: Session) -> Account:
         session.commit()
     except IntegrityError:
         session.rollback()
-        raise AccountNameDuplicateError(f"账户名 '{account_in.name}' 已存在")
+        raise AccountNameDuplicateError(f"账户名 '{account_in.name}' 已存在") from None
     session.refresh(account)
     return account
 
@@ -113,7 +106,9 @@ def update(account_id: int, account_in: AccountUpdate, session: Session) -> Acco
         session.commit()
     except IntegrityError:
         session.rollback()
-        raise AccountNameDuplicateError(f"账户名 '{update_data.get('name', account.name)}' 已存在")
+        raise AccountNameDuplicateError(
+            f"账户名 '{update_data.get('name', account.name)}' 已存在"
+        ) from None
     session.refresh(account)
     return account
 

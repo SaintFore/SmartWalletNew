@@ -1,8 +1,8 @@
-from dataclasses import dataclass
 from datetime import date
 from decimal import Decimal
 
-from sqlmodel import Session, col, select
+from sqlalchemy import or_
+from sqlmodel import Session, col, func, select
 
 from app.models.account import Account
 from app.models.category import Category
@@ -17,27 +17,23 @@ from app.schemas.transaction import (
 )
 
 
-@dataclass
-class CategoryTotal:
-    category_id: int
-    category_name: str
-    category_icon: str | None
-    total: Decimal
-    count: int
-
-
-
 def get_by_id(session: Session, transaction_id: int) -> Transaction | None:
     return session.get(Transaction, transaction_id)
 
 
 def get_by_type(session: Session, transaction_type: str) -> list[Transaction]:
-    statement = select(Transaction).where(Transaction.type == transaction_type).order_by(col(Transaction.date).desc(), col(Transaction.id).desc())
+    statement = (
+        select(Transaction)
+        .where(Transaction.type == transaction_type)
+        .order_by(col(Transaction.date).desc(), col(Transaction.id).desc())
+    )
     return list(session.exec(statement).all())
 
 
 def get_all(session: Session) -> list[Transaction]:
-    statement = select(Transaction).order_by(col(Transaction.date).desc(), col(Transaction.id).desc())
+    statement = select(Transaction).order_by(
+        col(Transaction.date).desc(), col(Transaction.id).desc()
+    )
     return list(session.exec(statement).all())
 
 
@@ -50,6 +46,7 @@ def get_filtered(
     date_from: date | None = None,
     date_to: date | None = None,
     search: str | None = None,
+    tag: str | None = None,
     limit: int = 50,
     offset: int = 0,
 ) -> tuple[list[Transaction], int]:
@@ -67,20 +64,15 @@ def get_filtered(
     if date_to:
         statement = statement.where(col(Transaction.date) <= date_to)
     if search:
-        from sqlalchemy import or_
-
         pattern = f"%{search}%"
-        conditions = []
-        if hasattr(Transaction, 'name'):
-            conditions.append(col(Transaction.name).like(pattern))
-        if hasattr(Transaction, 'description'):
-            conditions.append(col(Transaction.description).like(pattern))
-        if hasattr(Transaction, 'raw_input'):
-            conditions.append(col(Transaction.raw_input).like(pattern))
-        if conditions:
-            statement = statement.where(or_(*conditions))
-
-    from sqlmodel import func
+        conditions = [
+            col(Transaction.name).like(pattern),
+            col(Transaction.description).like(pattern),
+            col(Transaction.raw_input).like(pattern),
+        ]
+        statement = statement.where(or_(*conditions))
+    if tag:
+        statement = statement.where(col(Transaction.tags).like(f"%{tag}%"))
 
     count_statement = select(func.count()).select_from(statement.subquery())
     total = session.exec(count_statement).one()
@@ -145,9 +137,9 @@ def get_monthly_summary(year: int, month: int, session: Session) -> TransactionS
 
     total_expense = Decimal("0")
     total_income = Decimal("0")
-    category_totals: dict[int, CategoryTotal] = {}
+    category_totals: dict[int, CategorySummary] = {}
     daily_totals: dict[date, dict[str, Decimal]] = {}
-    account_totals: dict[int, dict[str, Decimal | int | str]] = {}
+    account_totals: dict[int, dict[str, object]] = {}
 
     category_ids = {transaction.category_id for transaction in transactions}
     account_ids = {transaction.account_id for transaction in transactions}
@@ -161,13 +153,15 @@ def get_monthly_summary(year: int, month: int, session: Session) -> TransactionS
 
     accounts_by_id = {
         account.id: account
-        for account in session.exec(
-            select(Account).where(col(Account.id).in_(account_ids))
-        ).all()
+        for account in session.exec(select(Account).where(col(Account.id).in_(account_ids))).all()
         if account.id is not None
     }
 
     for transaction in transactions:
+        # transfer 类型不计入收支
+        if transaction.type == "transfer":
+            continue
+
         if transaction.type == "income":
             total_income += transaction.amount
         else:
@@ -175,7 +169,7 @@ def get_monthly_summary(year: int, month: int, session: Session) -> TransactionS
 
         if transaction.category_id not in category_totals:
             category = categories_by_id.get(transaction.category_id)
-            category_totals[transaction.category_id] = CategoryTotal(
+            category_totals[transaction.category_id] = CategorySummary(
                 category_id=transaction.category_id,
                 category_name=category.name if category else "Unknown",
                 category_icon=category.icon if category else None,
@@ -183,8 +177,8 @@ def get_monthly_summary(year: int, month: int, session: Session) -> TransactionS
                 count=0,
             )
         category_total = category_totals[transaction.category_id]
-        category_total.total += transaction.amount
-        category_total.count += 1
+        category_total.total += transaction.amount  # type: ignore[assignment]
+        category_total.count += 1  # type: ignore[assignment]
 
         day_total = daily_totals.setdefault(
             transaction.date,
@@ -210,16 +204,7 @@ def get_monthly_summary(year: int, month: int, session: Session) -> TransactionS
             acct["total_expense"] = acct["total_expense"] + transaction.amount  # type: ignore[assignment]
         acct["count"] = acct["count"] + 1  # type: ignore[assignment]
 
-    by_category = [
-        CategorySummary(
-            category_id=data.category_id,
-            category_name=data.category_name,
-            category_icon=data.category_icon,
-            total=data.total,
-            count=data.count,
-        )
-        for data in category_totals.values()
-    ]
+    by_category = list(category_totals.values())
 
     by_day = [
         DailySummary(
@@ -234,11 +219,11 @@ def get_monthly_summary(year: int, month: int, session: Session) -> TransactionS
     by_account = [
         AccountSummary(
             account_id=account_id,
-            account_name=data["account_name"],
-            total_expense=data["total_expense"],
-            total_income=data["total_income"],
-            net=data["total_income"] - data["total_expense"],
-            count=data["count"],
+            account_name=str(data["account_name"]),
+            total_expense=Decimal(str(data["total_expense"])),
+            total_income=Decimal(str(data["total_income"])),
+            net=Decimal(str(data["total_income"])) - Decimal(str(data["total_expense"])),
+            count=int(str(data["count"])),
         )
         for account_id, data in account_totals.items()
     ]

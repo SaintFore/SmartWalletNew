@@ -1,3 +1,4 @@
+from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
 
 from app.models.category import Category
@@ -6,6 +7,10 @@ from app.schemas.category import CategoryCreate, CategoryUpdate
 
 
 class CategoryInUseError(ValueError):
+    pass
+
+
+class CategoryNameDuplicateError(ValueError):
     pass
 
 
@@ -21,7 +26,13 @@ def get_all(session: Session) -> list[Category]:
 def create(category_in: CategoryCreate, session: Session) -> Category:
     category = Category.model_validate(category_in)
     session.add(category)
-    session.commit()
+    try:
+        session.commit()
+    except IntegrityError:
+        session.rollback()
+        raise CategoryNameDuplicateError(
+            f"Category name '{category_in.name}' already exists"
+        ) from None
     session.refresh(category)
     return category
 
@@ -52,6 +63,12 @@ def update(category_id: int, category_in: CategoryUpdate, session: Session) -> C
     for key, value in update_data.items():
         setattr(category, key, value)
     session.add(category)
-    session.commit()
+    try:
+        session.commit()
+    except IntegrityError:
+        session.rollback()
+        raise CategoryNameDuplicateError(
+            f"Category name '{update_data.get('name', category.name)}' already exists"
+        ) from None
     session.refresh(category)
     return category
