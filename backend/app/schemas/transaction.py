@@ -12,11 +12,13 @@ from sqlmodel import SQLModel
 class TransactionBase(SQLModel):
     name: str | None = None
     amount: Decimal
-    type: Literal["expense", "income"]
+    type: Literal["expense", "income", "transfer"]
     category_id: int
     account_id: int
+    to_account_id: int | None = None
     description: str | None = None
     raw_input: str | None = None
+    tags: str | None = None
     date: Date
 
     @field_validator("amount")
@@ -40,12 +42,15 @@ class TransactionRead(TransactionBase):
 class TransactionUpdate(SQLModel):
     name: str | None = None
     amount: Decimal | None = None
-    type: Literal["expense", "income"] | None = None
+    type: Literal["expense", "income", "transfer"] | None = None
     category_id: int | None = None
     account_id: int | None = None
+    to_account_id: int | None = None
     description: str | None = None
     raw_input: str | None = None
+    tags: str | None = None
     date: Date | None = None
+
     @field_validator("amount")
     @classmethod
     def amount_must_be_positive(cls, amount: Decimal | None) -> Decimal | None:
@@ -60,6 +65,7 @@ class CategorySummary(SQLModel):
     category_icon: str | None
     total: Decimal
     count: int
+
 
 class DailySummary(SQLModel):
     date: Date
