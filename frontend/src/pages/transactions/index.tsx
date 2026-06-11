@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { motion } from "framer-motion";
-import { ArrowUpRight, ArrowDownRight, DollarSign, Download, X } from "lucide-react";
+import { ArrowUpRight, ArrowDownRight, ArrowLeftRight, DollarSign, Download, X } from "lucide-react";
 import {
   useMonthlySummary,
   useTransactions,
@@ -21,12 +21,11 @@ import { useCategories } from "@/entities/category";
 import { AppLayout } from "@/widgets/app-layout";
 import { SummaryCards } from "@/widgets/summary-cards";
 import { TransactionList } from "@/widgets/transaction-list";
+import { ease } from "@/shared/lib/animations";
 import { Button } from "@/shared/ui/button";
 import { Badge } from "@/shared/ui/badge";
 import { Separator } from "@/shared/ui/separator";
 import { Input } from "@/shared/ui/input";
-
-const ease = { duration: 0.4, ease: [0.22, 1, 0.36, 1] as const };
 
 
 export default function TransactionsPage() {
@@ -203,6 +202,14 @@ export default function TransactionsPage() {
                 <ArrowUpRight className="size-3" data-icon="inline-start" />
                 收入
               </Button>
+              <Button
+                variant={filters.type === "transfer" ? "default" : "outline"}
+                size="sm"
+                onClick={() => { setFilters({ ...filters, type: "transfer" }); setPage(0); }}
+              >
+                <ArrowLeftRight className="size-3" data-icon="inline-start" />
+                转账
+              </Button>
             </div>
 
             <select
@@ -251,7 +258,14 @@ export default function TransactionsPage() {
               />
             </div>
 
-            {(filters.type || filters.account_id || filters.category_id || filters.date_from || filters.date_to) && (
+            <Input
+              placeholder="Search tags..."
+              value={filters.tag || ""}
+              onChange={(e) => { setFilters({ ...filters, tag: e.target.value || undefined }); setPage(0); }}
+              className="h-8 w-32"
+            />
+
+            {(filters.type || filters.account_id || filters.category_id || filters.date_from || filters.date_to || filters.tag) && (
               <Button
                 variant="ghost"
                 size="sm"

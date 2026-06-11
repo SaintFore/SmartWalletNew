@@ -10,10 +10,9 @@ import { useDeleteCategory } from "@/features/delete-category";
 import { useUpdateCategory } from "@/features/update-category";
 import { AppLayout } from "@/widgets/app-layout";
 import { CategoryList } from "@/widgets/category-list";
+import { ease } from "@/shared/lib/animations";
 import { Badge } from "@/shared/ui/badge";
 import { Separator } from "@/shared/ui/separator";
-
-const ease = { duration: 0.4, ease: [0.22, 1, 0.36, 1] as const };
 
 export default function CategoriesPage() {
   const { data: categories, isLoading, isError } = useCategories();

@@ -23,6 +23,14 @@ export function BarChart({
   useEffect(() => {
     if (!svgRef.current || data.length === 0) return;
 
+    return () => {
+      d3.selectAll(".d3-tooltip").remove();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!svgRef.current || data.length === 0) return;
+
     const svg = d3.select(svgRef.current);
     svg.selectAll("*").remove();
 

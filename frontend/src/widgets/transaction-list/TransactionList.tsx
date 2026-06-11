@@ -3,47 +3,28 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowUpRight,
   ArrowDownRight,
+  ArrowLeftRight,
   Check,
   Pencil,
   Trash2,
   Calendar,
   X,
 } from "lucide-react";
-import type { TransactionUpdateValues } from "@/entities/transaction";
+import type { TransactionRead, TransactionUpdateValues } from "@/entities/transaction";
+import type { CategoryRead } from "@/entities/category";
+import type { AccountWithBalance } from "@/entities/account";
+import { ease } from "@/shared/lib/animations";
 import { Card, CardContent } from "@/shared/ui/card";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Skeleton } from "@/shared/ui/skeleton";
+import { Badge } from "@/shared/ui/badge";
 import { formatCurrency } from "@/shared/lib/format";
 
-const ease = { duration: 0.4, ease: [0.22, 1, 0.36, 1] as const };
-
-interface Transaction {
-  id: number;
-  name?: string | null;
-  amount: number | string;
-  type: string;
-  category_id: number;
-  account_id: number;
-  date: string;
-  description?: string | null;
-}
-
-interface Category {
-  id: number;
-  name: string;
-  icon?: string | null;
-}
-
-interface Account {
-  id: number;
-  name: string;
-}
-
 interface TransactionListProps {
-  transactions: Transaction[];
-  categories: Category[];
-  accounts: Account[];
+  transactions: TransactionRead[];
+  categories: CategoryRead[];
+  accounts: AccountWithBalance[];
   isLoading: boolean;
   isError: boolean;
   onDelete: (id: number) => void;
@@ -56,11 +37,13 @@ interface TransactionDraft {
   id: number;
   name: string;
   amount: string;
-  type: "expense" | "income";
+  type: "expense" | "income" | "transfer";
   category_id: string;
   account_id: string;
+  to_account_id: string;
   date: string;
   description: string;
+  tags: string;
 }
 
 function formatDateHeader(dateStr: string): string {
@@ -82,8 +65,8 @@ function formatDateHeader(dateStr: string): string {
   });
 }
 
-function groupTransactionsByDate(transactions: Transaction[]): Map<string, Transaction[]> {
-  const groups = new Map<string, Transaction[]>();
+function groupTransactionsByDate(transactions: TransactionRead[]): Map<string, TransactionRead[]> {
+  const groups = new Map<string, TransactionRead[]>();
   for (const t of transactions) {
     const dateKey = t.date.slice(0, 10);
     const group = groups.get(dateKey) || [];
@@ -162,16 +145,18 @@ export function TransactionList({
     );
   }
 
-  function startEditing(transaction: Transaction) {
+  function startEditing(transaction: TransactionRead) {
     setDraft({
       id: transaction.id,
       name: transaction.name ?? "",
       amount: String(transaction.amount),
-      type: transaction.type as "expense" | "income",
+      type: transaction.type as "expense" | "income" | "transfer",
       category_id: String(transaction.category_id),
       account_id: String(transaction.account_id),
+      to_account_id: transaction.to_account_id ? String(transaction.to_account_id) : "",
       date: transaction.date.slice(0, 10),
       description: transaction.description ?? "",
+      tags: transaction.tags ?? "",
     });
   }
 
@@ -191,10 +176,36 @@ export function TransactionList({
       type: draft.type,
       category_id,
       account_id,
+      to_account_id: draft.to_account_id ? parseInt(draft.to_account_id, 10) : undefined,
       date: draft.date,
       description: draft.description.trim() || undefined,
+      tags: draft.tags.trim() || undefined,
     });
     setDraft(null);
+  }
+
+  function getTypeIcon(type: string) {
+    if (type === "income") return <ArrowUpRight className="size-5 text-emerald-500" />;
+    if (type === "transfer") return <ArrowLeftRight className="size-5 text-blue-500" />;
+    return <ArrowDownRight className="size-5 text-red-500" />;
+  }
+
+  function getTypeColor(type: string) {
+    if (type === "income") return "bg-emerald-500/15";
+    if (type === "transfer") return "bg-blue-500/15";
+    return "bg-red-500/15";
+  }
+
+  function getAmountColor(type: string) {
+    if (type === "income") return "text-emerald-500";
+    if (type === "transfer") return "text-blue-500";
+    return "text-red-500";
+  }
+
+  function getAmountPrefix(type: string) {
+    if (type === "income") return "+";
+    if (type === "transfer") return "→";
+    return "-";
   }
 
   return (
@@ -256,19 +267,20 @@ export function TransactionList({
                                 placeholder="Name (optional)"
                               />
                             </div>
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-3 gap-3">
                               <select
                                 value={draft.type}
                                 onChange={(e) =>
                                   setDraft({
                                     ...draft,
-                                    type: e.target.value as "expense" | "income",
+                                    type: e.target.value as "expense" | "income" | "transfer",
                                   })
                                 }
                                 className="h-9 rounded-md border border-input bg-background px-3 text-sm"
                               >
                                 <option value="expense">Expense</option>
                                 <option value="income">Income</option>
+                                <option value="transfer">Transfer</option>
                               </select>
                               <select
                                 value={draft.category_id}
@@ -287,8 +299,6 @@ export function TransactionList({
                                   </option>
                                 ))}
                               </select>
-                            </div>
-                            <div className="grid grid-cols-2 gap-3">
                               <select
                                 value={draft.account_id}
                                 onChange={(e) =>
@@ -305,6 +315,28 @@ export function TransactionList({
                                   </option>
                                 ))}
                               </select>
+                            </div>
+                            {draft.type === "transfer" && (
+                              <select
+                                value={draft.to_account_id}
+                                onChange={(e) =>
+                                  setDraft({ ...draft, to_account_id: e.target.value })
+                                }
+                                className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+                              >
+                                <option value="" disabled>
+                                  To Account
+                                </option>
+                                {accounts
+                                  .filter((a) => String(a.id) !== draft.account_id)
+                                  .map((a) => (
+                                    <option key={a.id} value={a.id}>
+                                      {a.name}
+                                    </option>
+                                  ))}
+                              </select>
+                            )}
+                            <div className="grid grid-cols-2 gap-3">
                               <Input
                                 aria-label="Date"
                                 type="date"
@@ -313,6 +345,15 @@ export function TransactionList({
                                   setDraft({ ...draft, date: e.target.value })
                                 }
                                 className="h-9"
+                              />
+                              <Input
+                                aria-label="Tags"
+                                value={draft.tags}
+                                onChange={(e) =>
+                                  setDraft({ ...draft, tags: e.target.value })
+                                }
+                                className="h-9"
+                                placeholder="Tags (comma separated)"
                               />
                             </div>
                             <Input
@@ -354,40 +395,48 @@ export function TransactionList({
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
                               <div
-                                className={`size-11 rounded-2xl flex items-center justify-center shadow-inner ${
-                                  transaction.type === "income"
-                                    ? "bg-emerald-500/15"
-                                    : "bg-red-500/15"
-                                }`}
+                                className={`size-11 rounded-2xl flex items-center justify-center shadow-inner ${getTypeColor(transaction.type)}`}
                               >
                                 {category?.icon ? (
                                   <span className="text-xl">{category.icon}</span>
-                                ) : transaction.type === "income" ? (
-                                  <ArrowUpRight className="size-5 text-emerald-500" />
                                 ) : (
-                                  <ArrowDownRight className="size-5 text-red-500" />
+                                  getTypeIcon(transaction.type)
                                 )}
                               </div>
                               <div>
-                                <p className="font-medium">
-                                  {transaction.name || category?.name || "Untitled"}
-                                </p>
-                                <p className="text-xs text-muted-foreground">
-                                  {transaction.description
-                                    ? transaction.description
-                                    : ""}
-                                </p>
+                                <div className="flex items-center gap-2">
+                                  <p className="font-medium">
+                                    {transaction.name || category?.name || "Untitled"}
+                                  </p>
+                                  {transaction.type === "transfer" && (
+                                    <Badge variant="outline" className="text-xs text-blue-500 border-blue-500/30">
+                                      Transfer
+                                    </Badge>
+                                  )}
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  {transaction.description && (
+                                    <p className="text-xs text-muted-foreground">
+                                      {transaction.description}
+                                    </p>
+                                  )}
+                                  {transaction.tags && (
+                                    <div className="flex gap-1">
+                                      {transaction.tags.split(",").map((tag) => (
+                                        <Badge key={tag} variant="secondary" className="text-xs">
+                                          {tag.trim()}
+                                        </Badge>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
                               </div>
                             </div>
                             <div className="flex items-center gap-2">
                               <p
-                                className={`font-semibold tracking-tight ${
-                                  transaction.type === "income"
-                                    ? "text-emerald-500"
-                                    : "text-red-500"
-                                }`}
+                                className={`font-semibold tracking-tight ${getAmountColor(transaction.type)}`}
                               >
-                                {transaction.type === "income" ? "+" : "-"}
+                                {getAmountPrefix(transaction.type)}
                                 {formatCurrency(transaction.amount)}
                               </p>
                               <div className="flex opacity-0 transition-opacity group-hover:opacity-100">

@@ -2,22 +2,15 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Check, FolderOpen, Pencil, Trash2, X } from "lucide-react";
 
-import type { CategoryUpdateValues } from "@/entities/category";
+import type { CategoryRead, CategoryUpdateValues } from "@/entities/category";
+import { ease } from "@/shared/lib/animations";
 import { Button } from "@/shared/ui/button";
 import { Card, CardContent } from "@/shared/ui/card";
 import { Input } from "@/shared/ui/input";
 import { Skeleton } from "@/shared/ui/skeleton";
 
-const ease = { duration: 0.4, ease: [0.22, 1, 0.36, 1] as const };
-
-interface Category {
-  id: number;
-  name: string;
-  icon?: string | null;
-}
-
 interface CategoryListProps {
-  categories: Category[];
+  categories: CategoryRead[];
   isLoading: boolean;
   isError: boolean;
   onDelete: (id: number) => void;
@@ -95,7 +88,7 @@ export function CategoryList({
     );
   }
 
-  function startEditing(category: Category) {
+  function startEditing(category: CategoryRead) {
     setDraft({
       id: category.id,
       name: category.name,

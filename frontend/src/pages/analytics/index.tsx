@@ -10,16 +10,16 @@ import {
   Wallet,
 } from "lucide-react";
 import { useMonthlySummary } from "@/entities/transaction";
+import { useBudgetStatus } from "@/entities/budget";
 import { useCategories } from "@/entities/category";
 import { AppLayout } from "@/widgets/app-layout";
 import { BarChart, LineChart, PieChart } from "@/widgets/charts";
+import { ease } from "@/shared/lib/animations";
 import { Button } from "@/shared/ui/button";
 import { Badge } from "@/shared/ui/badge";
 import { Card, CardContent } from "@/shared/ui/card";
 import { Separator } from "@/shared/ui/separator";
 import { formatCurrency } from "@/shared/lib/format";
-
-const ease = { duration: 0.4, ease: [0.22, 1, 0.36, 1] as const };
 
 function getMonthName(month: number): string {
   const months = [
@@ -49,6 +49,7 @@ export default function AnalyticsPage() {
     selectedMonth,
   );
   const { data: categories } = useCategories();
+  const { data: budgetStatus } = useBudgetStatus(selectedYear, selectedMonth);
 
   const prevMonth = selectedMonth === 1 ? 12 : selectedMonth - 1;
   const prevYear = selectedMonth === 1 ? selectedYear - 1 : selectedYear;
@@ -227,6 +228,61 @@ export default function AnalyticsPage() {
         </motion.div>
 
         <Separator className="mb-8" />
+
+        {/* Budget Section */}
+        {budgetStatus && budgetStatus.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15, ...ease }}
+            className="mb-8"
+          >
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <DollarSign className="size-5 text-primary" />
+                  <h3 className="font-medium">Budget Status</h3>
+                </div>
+                <div className="flex flex-col gap-3">
+                  {budgetStatus.map((b) => (
+                    <div key={b.category_id} className="flex items-center gap-3">
+                      <div className="size-8 rounded-lg bg-primary/10 flex items-center justify-center text-sm">
+                        {b.category_icon || "📦"}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-sm font-medium">{b.category_name}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {formatCurrency(Number(b.spent))} / {formatCurrency(Number(b.budget_amount))}
+                          </span>
+                        </div>
+                        <div className="h-2 rounded-full bg-muted overflow-hidden">
+                          <div
+                            className={`h-full rounded-full transition-all ${
+                              b.percentage > 100
+                                ? "bg-red-500"
+                                : b.percentage > 80
+                                  ? "bg-amber-500"
+                                  : "bg-emerald-500"
+                            }`}
+                            style={{ width: `${Math.min(b.percentage, 100)}%` }}
+                          />
+                        </div>
+                      </div>
+                      <span
+                        className={`text-sm font-medium ${
+                          b.percentage > 100 ? "text-red-500" : "text-muted-foreground"
+                        }`}
+                      >
+                        {b.percentage.toFixed(0)}%
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
 
         {/* Charts Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">

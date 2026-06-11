@@ -11,10 +11,9 @@ import { useDeleteAccount } from "@/features/delete-account";
 import { useUpdateAccount } from "@/features/update-account";
 import { AppLayout } from "@/widgets/app-layout";
 import { AccountList } from "@/widgets/account-list";
+import { ease } from "@/shared/lib/animations";
 import { Badge } from "@/shared/ui/badge";
 import { Separator } from "@/shared/ui/separator";
-
-const ease = { duration: 0.4, ease: [0.22, 1, 0.36, 1] as const };
 
 export default function AccountsPage() {
   const { data: accounts, isLoading, isError } = useAccounts();

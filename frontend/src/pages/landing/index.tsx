@@ -19,14 +19,13 @@ import {
 } from "lucide-react";
 import { useDarkMode } from "@/shared/lib/use-dark-mode";
 import { formatCurrency } from "@/shared/lib/format";
+import { ease } from "@/shared/lib/animations";
 import { useCategories } from "@/entities/category";
-import { useMonthlySummary, useTransactions } from "@/entities/transaction";
+import { useMonthlySummary, useTransactions, type TransactionRead } from "@/entities/transaction";
 import { Button } from "@/shared/ui/button";
 import { Badge } from "@/shared/ui/badge";
 import { Card, CardContent } from "@/shared/ui/card";
 import { Separator } from "@/shared/ui/separator";
-
-const ease = { duration: 0.4, ease: [0.22, 1, 0.36, 1] as const };
 
 export default function LandingPage() {
   const { dark, toggle } = useDarkMode();
@@ -231,7 +230,7 @@ export default function LandingPage() {
 
           {transactions && transactions.items && transactions.items.length > 0 ? (
             <div className="flex flex-col gap-3">
-              {transactions.items.slice(0, 5).map((transaction: { id: number; type: string; name?: string | null; date: string; amount: string; category_id: number; description?: string | null }, i: number) => (
+              {transactions.items.slice(0, 5).map((transaction: TransactionRead, i: number) => (
                 <motion.div
                   key={transaction.id}
                   initial={{ opacity: 0, y: 10 }}

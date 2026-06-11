@@ -2,7 +2,8 @@ import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Check, CreditCard, Pencil, Star, Trash2, WalletCards, X } from "lucide-react";
 
-import type { AccountUpdateValues } from "@/entities/account";
+import type { AccountUpdateValues, AccountWithBalance } from "@/entities/account";
+import { ease } from "@/shared/lib/animations";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,19 +26,8 @@ import {
 } from "@/shared/ui/tooltip";
 import { formatCurrency } from "@/shared/lib/format";
 
-const ease = { duration: 0.4, ease: [0.22, 1, 0.36, 1] as const };
-
-interface Account {
-  id: number;
-  name: string;
-  icon?: string | null;
-  is_default: boolean;
-  balance: number | string;
-  has_transactions?: boolean;
-}
-
 interface AccountListProps {
-  accounts: Account[];
+  accounts: AccountWithBalance[];
   isLoading: boolean;
   isError: boolean;
   onDelete: (id: number) => void;
@@ -52,6 +42,8 @@ interface AccountDraft {
   icon: string;
   is_default: boolean;
 }
+
+type AccountItem = AccountWithBalance;
 
 function AccountListSkeleton() {
   return (
@@ -83,7 +75,7 @@ export function AccountList({
   isUpdating,
 }: AccountListProps) {
   const [draft, setDraft] = useState<AccountDraft | null>(null);
-  const [pendingDelete, setPendingDelete] = useState<Account | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<AccountItem | null>(null);
 
   if (isLoading) {
     return <AccountListSkeleton />;
@@ -115,7 +107,7 @@ export function AccountList({
     );
   }
 
-  function startEditing(account: Account) {
+  function startEditing(account: AccountItem) {
     setDraft({
       id: account.id,
       name: account.name,

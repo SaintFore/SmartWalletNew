@@ -9,9 +9,12 @@ import {
   Loader2,
   Plus,
   Sparkles,
+  ArrowLeftRight,
 } from "lucide-react";
 import { useForm } from "react-hook-form";
 
+import type { CategoryRead } from "@/entities/category";
+import type { AccountWithBalance } from "@/entities/account";
 import {
   quickTransactionCreateSchema,
   transactionCreateSchema,
@@ -23,22 +26,9 @@ import { Card, CardContent } from "@/shared/ui/card";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
 
-interface Category {
-  id: number;
-  name: string;
-  icon?: string | null;
-}
-
-interface Account {
-  id: number;
-  name: string;
-  icon?: string | null;
-  is_default?: boolean;
-}
-
 interface TransactionFormProps {
-  categories: Category[];
-  accounts: Account[];
+  categories: CategoryRead[];
+  accounts: AccountWithBalance[];
   onSubmit: (data: TransactionCreateValues) => void;
   onQuickSubmit: (data: QuickTransactionCreateValues) => void;
   isPending: boolean;
@@ -235,7 +225,7 @@ export function TransactionForm({
           </div>
 
           {/* Type Toggle */}
-          <div className="grid grid-cols-2 gap-2 rounded-2xl bg-muted/70 p-1">
+          <div className="grid grid-cols-3 gap-2 rounded-2xl bg-muted/70 p-1">
             <Button
               type="button"
               variant={selectedType === "expense" ? "default" : "ghost"}
@@ -255,6 +245,16 @@ export function TransactionForm({
             >
               <ArrowUpRight className="size-3" data-icon="inline-start" />
               Income
+            </Button>
+            <Button
+              type="button"
+              variant={selectedType === "transfer" ? "default" : "ghost"}
+              size="sm"
+              className="h-10"
+              onClick={() => setValue("type", "transfer")}
+            >
+              <ArrowLeftRight className="size-3" data-icon="inline-start" />
+              Transfer
             </Button>
             <input type="hidden" {...register("type")} />
           </div>
@@ -318,6 +318,37 @@ export function TransactionForm({
                         {errors.account_id.message}
                       </p>
                     )}
+                  </div>
+                  {selectedType === "transfer" && (
+                    <div className="flex flex-col gap-1.5">
+                      <Label htmlFor="to_account_id" className="text-xs">
+                        To Account
+                      </Label>
+                      <select
+                        id="to_account_id"
+                        {...register("to_account_id", { valueAsNumber: true })}
+                        className="flex h-10 w-full rounded-xl border border-input bg-background/80 px-3 py-2 text-sm shadow-sm ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                      >
+                        <option value="">Select target account</option>
+                        {accounts
+                          .filter((a) => a.id !== selectedAccountId)
+                          .map((account) => (
+                            <option key={account.id} value={account.id}>
+                              {account.icon} {account.name}
+                            </option>
+                          ))}
+                      </select>
+                    </div>
+                  )}
+                  <div className="flex flex-col gap-1.5">
+                    <Label htmlFor="tags" className="text-xs">
+                      Tags
+                    </Label>
+                    <Input
+                      id="tags"
+                      placeholder="e.g. 请客,出差"
+                      {...register("tags")}
+                    />
                   </div>
                   <div className="flex flex-col gap-1.5 sm:col-span-2">
                     <Label htmlFor="description" className="text-xs">
