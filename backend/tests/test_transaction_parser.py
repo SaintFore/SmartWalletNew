@@ -1,24 +1,11 @@
 from datetime import date
 
-import pytest
-from sqlmodel import Session, SQLModel, create_engine
+from sqlmodel import Session
 
 from app.models.account import Account
 from app.models.category import Category
 from app.schemas.transaction import QuickTransactionCreate
 from app.services.transaction_parser import TransactionParseError, parse_quick_transaction
-
-
-@pytest.fixture(name="session")
-def session_fixture(tmp_path):
-    test_engine = create_engine(
-        f"sqlite:///{tmp_path / 'test_parser.db'}",
-        connect_args={"check_same_thread": False},
-    )
-    SQLModel.metadata.create_all(test_engine)
-    with Session(test_engine) as session:
-        yield session
-    SQLModel.metadata.drop_all(test_engine)
 
 
 def seed_reference_data(session: Session) -> tuple[Account, Category, Category]:
@@ -55,5 +42,7 @@ def test_parse_quick_transaction_uses_local_rules(session: Session):
 def test_parse_quick_transaction_rejects_input_without_amount(session: Session):
     seed_reference_data(session)
 
-    with pytest.raises(TransactionParseError):
+    from pytest import raises
+
+    with raises(TransactionParseError):
         parse_quick_transaction(QuickTransactionCreate(text="午饭 支付宝"), session)

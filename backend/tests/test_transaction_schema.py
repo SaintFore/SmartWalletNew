@@ -26,9 +26,17 @@ def test_transaction_create_rejects_non_positive_amount():
         TransactionCreate.model_validate(payload)
 
 
-def test_transaction_create_rejects_unknown_type():
+def test_transaction_create_accepts_transfer_type():
     payload = valid_transaction_payload()
     payload["type"] = "transfer"
+
+    result = TransactionCreate.model_validate(payload)
+    assert result.type == "transfer"
+
+
+def test_transaction_create_rejects_unknown_type():
+    payload = valid_transaction_payload()
+    payload["type"] = "unknown"
 
     with pytest.raises(ValidationError):
         TransactionCreate.model_validate(payload)
@@ -37,3 +45,20 @@ def test_transaction_create_rejects_unknown_type():
 def test_transaction_update_rejects_negative_amount():
     with pytest.raises(ValidationError):
         TransactionUpdate.model_validate({"amount": Decimal("-0.01")})
+
+
+def test_transaction_create_accepts_tags():
+    payload = valid_transaction_payload()
+    payload["tags"] = "请客,出差"
+
+    result = TransactionCreate.model_validate(payload)
+    assert result.tags == "请客,出差"
+
+
+def test_transaction_create_accepts_to_account_id():
+    payload = valid_transaction_payload()
+    payload["type"] = "transfer"
+    payload["to_account_id"] = 2
+
+    result = TransactionCreate.model_validate(payload)
+    assert result.to_account_id == 2
