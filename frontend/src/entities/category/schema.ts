@@ -6,7 +6,7 @@ export const categoryCreateSchema = z.object({
 });
 
 export const categoryUpdateSchema = z.object({
-  name: z.string().min(1).optional(),
+  name: z.string().min(1, "Name is required").optional(),
   icon: z.string().nullable().optional(),
 });
 

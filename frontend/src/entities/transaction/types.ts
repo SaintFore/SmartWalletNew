@@ -16,6 +16,7 @@ export interface TransactionFilters {
   date_from?: string;
   date_to?: string;
   search?: string;
+  tag?: string;
   limit?: number;
   offset?: number;
 }

@@ -21,6 +21,7 @@ export function useTransactions(filters?: TransactionFilters) {
       if (filters?.date_from) query.date_from = filters.date_from;
       if (filters?.date_to) query.date_to = filters.date_to;
       if (filters?.search) query.search = filters.search;
+      if (filters?.tag) query.tag = filters.tag;
       if (filters?.limit) query.limit = filters.limit;
       if (filters?.offset) query.offset = filters.offset;
 
@@ -46,7 +47,7 @@ export function useTransaction(id: number) {
       if (error) throw error;
       return data;
     },
-    enabled: !!id,
+    enabled: id > 0,
   });
 }
 

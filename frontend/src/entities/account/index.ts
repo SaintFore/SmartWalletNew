@@ -5,4 +5,4 @@ export {
   type AccountUpdateValues,
 } from "./schema";
 export { accountKeys, useAccounts } from "./api";
-export type { AccountCreate, AccountRead, AccountUpdate } from "./types";
+export type { AccountCreate, AccountRead, AccountUpdate, AccountWithBalance } from "./types";
