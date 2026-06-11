@@ -119,6 +119,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/transactions/summary/monthly/{year}/{month}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Monthly Transaction Summary
+         * @description 获取指定月份的交易汇总。
+         */
+        get: operations["get_monthly_transaction_summary_api_transactions_summary_monthly__year___month__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/transactions/{transaction_id}": {
         parameters: {
             query?: never;
@@ -167,18 +187,51 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/transactions/summary/monthly/{year}/{month}": {
+    "/api/budgets": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /**
-         * Get Monthly Transaction Summary
-         * @description 获取指定月份的交易汇总。
-         */
-        get: operations["get_monthly_transaction_summary_api_transactions_summary_monthly__year___month__get"];
+        /** Read Budgets */
+        get: operations["read_budgets_api_budgets_get"];
+        put?: never;
+        /** Create Budget */
+        post: operations["create_budget_api_budgets_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/budgets/{budget_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Budget */
+        delete: operations["delete_budget_api_budgets__budget_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update Budget */
+        patch: operations["update_budget_api_budgets__budget_id__patch"];
+        trace?: never;
+    };
+    "/api/budgets/status/{year}/{month}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Budget Status */
+        get: operations["read_budget_status_api_budgets_status__year___month__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -261,6 +314,46 @@ export interface components {
              * @default false
              */
             has_transactions: boolean;
+        };
+        /** BudgetCreate */
+        BudgetCreate: {
+            /** Category Id */
+            category_id: number;
+            /** Amount */
+            amount: number | string;
+        };
+        /** BudgetRead */
+        BudgetRead: {
+            /** Category Id */
+            category_id: number;
+            /** Amount */
+            amount: string;
+            /** Id */
+            id: number;
+        };
+        /** BudgetStatus */
+        BudgetStatus: {
+            /** Category Id */
+            category_id: number;
+            /** Category Name */
+            category_name: string;
+            /** Category Icon */
+            category_icon: string | null;
+            /** Budget Amount */
+            budget_amount: string;
+            /** Spent */
+            spent: string;
+            /** Remaining */
+            remaining: string;
+            /** Percentage */
+            percentage: number;
+        };
+        /** BudgetUpdate */
+        BudgetUpdate: {
+            /** Category Id */
+            category_id?: number | null;
+            /** Amount */
+            amount?: number | string | null;
         };
         /** CategoryCreate */
         CategoryCreate: {
@@ -347,15 +440,19 @@ export interface components {
              * Type
              * @enum {string}
              */
-            type: "expense" | "income";
+            type: "expense" | "income" | "transfer";
             /** Category Id */
             category_id: number;
             /** Account Id */
             account_id: number;
+            /** To Account Id */
+            to_account_id?: number | null;
             /** Description */
             description?: string | null;
             /** Raw Input */
             raw_input?: string | null;
+            /** Tags */
+            tags?: string | null;
             /**
              * Date
              * Format: date
@@ -372,15 +469,19 @@ export interface components {
              * Type
              * @enum {string}
              */
-            type: "expense" | "income";
+            type: "expense" | "income" | "transfer";
             /** Category Id */
             category_id: number;
             /** Account Id */
             account_id: number;
+            /** To Account Id */
+            to_account_id?: number | null;
             /** Description */
             description?: string | null;
             /** Raw Input */
             raw_input?: string | null;
+            /** Tags */
+            tags?: string | null;
             /**
              * Date
              * Format: date
@@ -416,15 +517,19 @@ export interface components {
             /** Amount */
             amount?: number | string | null;
             /** Type */
-            type?: ("expense" | "income") | null;
+            type?: ("expense" | "income" | "transfer") | null;
             /** Category Id */
             category_id?: number | null;
             /** Account Id */
             account_id?: number | null;
+            /** To Account Id */
+            to_account_id?: number | null;
             /** Description */
             description?: string | null;
             /** Raw Input */
             raw_input?: string | null;
+            /** Tags */
+            tags?: string | null;
             /** Date */
             date?: string | null;
         };
@@ -771,12 +876,13 @@ export interface operations {
     read_transactions_api_transactions_get: {
         parameters: {
             query?: {
-                type?: string | null;
+                type?: ("expense" | "income" | "transfer") | null;
                 account_id?: number | null;
                 category_id?: number | null;
                 date_from?: string | null;
                 date_to?: string | null;
                 search?: string | null;
+                tag?: string | null;
                 limit?: number;
                 offset?: number;
             };
@@ -826,6 +932,38 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TransactionRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_monthly_transaction_summary_api_transactions_summary_monthly__year___month__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                year: number;
+                month: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TransactionSummary"];
                 };
             };
             /** @description Validation Error */
@@ -967,7 +1105,124 @@ export interface operations {
             };
         };
     };
-    get_monthly_transaction_summary_api_transactions_summary_monthly__year___month__get: {
+    read_budgets_api_budgets_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BudgetRead"][];
+                };
+            };
+        };
+    };
+    create_budget_api_budgets_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BudgetCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BudgetRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_budget_api_budgets__budget_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                budget_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_budget_api_budgets__budget_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                budget_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BudgetUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BudgetRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_budget_status_api_budgets_status__year___month__get: {
         parameters: {
             query?: never;
             header?: never;
@@ -985,7 +1240,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["TransactionSummary"];
+                    "application/json": components["schemas"]["BudgetStatus"][];
                 };
             };
             /** @description Validation Error */
