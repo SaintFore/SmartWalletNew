@@ -1,5 +1,9 @@
 import { useState, useRef, useEffect } from "react";
-import type { TransactionUpdateValues } from "@/entities/transaction";
+import {
+  type TransactionUpdateValues,
+  TYPE_OPTIONS,
+  type SelectOption,
+} from "@/entities/transaction";
 import type { CategoryRead } from "@/entities/category";
 import type { AccountWithBalance } from "@/entities/account";
 
@@ -17,15 +21,22 @@ interface CellProps {
 export function EditTextCell({ value, onSave, onCancel, onNavigate, disabled }: CellProps) {
   const [draft, setDraft] = useState(value);
   const ref = useRef<HTMLInputElement>(null);
+  const committedRef = useRef(false);
 
   useEffect(() => {
     ref.current?.focus();
     ref.current?.select();
   }, []);
 
-  function commit() {
-    if (draft !== value) onSave(draft);
-    else onCancel();
+  function commit(): boolean {
+    if (committedRef.current) return false;
+    committedRef.current = true;
+    if (draft !== value) {
+      onSave(draft);
+      return true;
+    }
+    onCancel();
+    return false;
   }
 
   return (
@@ -33,22 +44,17 @@ export function EditTextCell({ value, onSave, onCancel, onNavigate, disabled }: 
       ref={ref}
       value={draft}
       onChange={(e) => setDraft(e.target.value)}
-      onBlur={commit}
+      onBlur={() => commit()}
       onKeyDown={(e) => {
         if (e.key === "Enter") {
           e.preventDefault();
-          if (e.shiftKey) {
-            if (draft !== value) onSave(draft); else onCancel();
-            onNavigate?.("up");
-          } else {
-            if (draft !== value) onSave(draft); else onCancel();
-            onNavigate?.("down");
-          }
+          commit();
+          onNavigate?.(e.shiftKey ? "up" : "down");
         }
-        if (e.key === "Escape") { e.preventDefault(); onCancel(); }
+        if (e.key === "Escape") { e.preventDefault(); committedRef.current = true; onCancel(); }
         if (e.key === "Tab") {
           e.preventDefault();
-          if (draft !== value) onSave(draft); else onCancel();
+          commit();
           onNavigate?.(e.shiftKey ? "left" : "right");
         }
       }}
@@ -62,19 +68,24 @@ export function EditTextCell({ value, onSave, onCancel, onNavigate, disabled }: 
 export function EditNumberCell({ value, onSave, onCancel, onNavigate, disabled }: CellProps) {
   const [draft, setDraft] = useState(value);
   const ref = useRef<HTMLInputElement>(null);
+  const committedRef = useRef(false);
 
   useEffect(() => {
     ref.current?.focus();
     ref.current?.select();
   }, []);
 
-  function commit() {
+  function commit(): boolean {
+    if (committedRef.current) return false;
     const num = parseFloat(draft);
     if (!isNaN(num) && num > 0 && draft !== value) {
+      committedRef.current = true;
       onSave(draft);
-    } else {
-      onCancel();
+      return true;
     }
+    committedRef.current = true;
+    onCancel();
+    return false;
   }
 
   return (
@@ -85,18 +96,18 @@ export function EditNumberCell({ value, onSave, onCancel, onNavigate, disabled }
       min="0.01"
       value={draft}
       onChange={(e) => setDraft(e.target.value)}
-      onBlur={commit}
+      onBlur={() => commit()}
       onKeyDown={(e) => {
         if (e.key === "Enter") {
           e.preventDefault();
-          commit();
-          onNavigate?.(e.shiftKey ? "up" : "down");
+          const ok = commit();
+          if (ok) onNavigate?.(e.shiftKey ? "up" : "down");
         }
-        if (e.key === "Escape") { e.preventDefault(); onCancel(); }
+        if (e.key === "Escape") { e.preventDefault(); committedRef.current = true; onCancel(); }
         if (e.key === "Tab") {
           e.preventDefault();
-          commit();
-          onNavigate?.(e.shiftKey ? "left" : "right");
+          const ok = commit();
+          if (ok) onNavigate?.(e.shiftKey ? "left" : "right");
         }
       }}
       disabled={disabled}
@@ -109,15 +120,22 @@ export function EditNumberCell({ value, onSave, onCancel, onNavigate, disabled }
 export function EditDateCell({ value, onSave, onCancel, onNavigate, disabled }: CellProps) {
   const [draft, setDraft] = useState(value.slice(0, 10));
   const ref = useRef<HTMLInputElement>(null);
+  const committedRef = useRef(false);
 
   useEffect(() => {
     ref.current?.focus();
     try { ref.current?.showPicker?.(); } catch { /* noop */ }
   }, []);
 
-  function commit() {
-    if (draft && draft !== value.slice(0, 10)) onSave(draft);
-    else onCancel();
+  function commit(): boolean {
+    if (committedRef.current) return false;
+    committedRef.current = true;
+    if (draft && draft !== value.slice(0, 10)) {
+      onSave(draft);
+      return true;
+    }
+    onCancel();
+    return false;
   }
 
   return (
@@ -126,14 +144,14 @@ export function EditDateCell({ value, onSave, onCancel, onNavigate, disabled }: 
       type="date"
       value={draft}
       onChange={(e) => setDraft(e.target.value)}
-      onBlur={commit}
+      onBlur={() => commit()}
       onKeyDown={(e) => {
         if (e.key === "Enter") {
           e.preventDefault();
           commit();
           onNavigate?.(e.shiftKey ? "up" : "down");
         }
-        if (e.key === "Escape") { e.preventDefault(); onCancel(); }
+        if (e.key === "Escape") { e.preventDefault(); committedRef.current = true; onCancel(); }
         if (e.key === "Tab") {
           e.preventDefault();
           commit();
@@ -147,11 +165,6 @@ export function EditDateCell({ value, onSave, onCancel, onNavigate, disabled }: 
 }
 
 // ── Select cell (for enum / FK fields) ───────────────────────────────────────
-interface SelectOption {
-  value: string;
-  label: string;
-}
-
 interface EditSelectCellProps extends Omit<CellProps, "value"> {
   value: string;
   options: SelectOption[];
@@ -167,12 +180,15 @@ export function EditSelectCell({
 }: EditSelectCellProps) {
   const [draft, setDraft] = useState(value);
   const ref = useRef<HTMLSelectElement>(null);
+  const committedRef = useRef(false);
 
   useEffect(() => {
     ref.current?.focus();
   }, []);
 
   function commit() {
+    if (committedRef.current) return;
+    committedRef.current = true;
     if (draft !== value) onSave(draft);
     else onCancel();
   }
@@ -182,6 +198,8 @@ export function EditSelectCell({
       ref={ref}
       value={draft}
       onChange={(e) => {
+        if (committedRef.current) return;
+        committedRef.current = true;
         setDraft(e.target.value);
         if (e.target.value !== value) {
           onSave(e.target.value);
@@ -189,17 +207,17 @@ export function EditSelectCell({
           onCancel();
         }
       }}
-      onBlur={commit}
+      onBlur={() => commit()}
       onKeyDown={(e) => {
-        if (e.key === "Escape") { e.preventDefault(); onCancel(); }
+        if (e.key === "Escape") { e.preventDefault(); committedRef.current = true; onCancel(); }
         if (e.key === "Tab") {
           e.preventDefault();
-          if (draft !== value) onSave(draft); else onCancel();
+          commit();
           onNavigate?.(e.shiftKey ? "left" : "right");
         }
         if (e.key === "Enter") {
           e.preventDefault();
-          if (draft !== value) onSave(draft); else onCancel();
+          commit();
           onNavigate?.(e.shiftKey ? "up" : "down");
         }
       }}
@@ -293,13 +311,7 @@ export function buildUpdatePayload(
 }
 
 // ── Option builders ──────────────────────────────────────────────────────────
-export function typeOptions(): SelectOption[] {
-  return [
-    { value: "expense", label: "支出" },
-    { value: "income", label: "收入" },
-    { value: "transfer", label: "转账" },
-  ];
-}
+export { TYPE_OPTIONS, type SelectOption };
 
 export function categoryOptions(categories: CategoryRead[]): SelectOption[] {
   return categories.map((c) => ({

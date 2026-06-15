@@ -24,6 +24,9 @@ import {
   useTransactions,
   type TransactionRead,
   type TransactionFilters,
+  TYPE_LABELS,
+  TYPE_ICONS,
+  TYPE_COLORS,
 } from "@/entities/transaction";
 import { useAccounts } from "@/entities/account";
 import { useCategories } from "@/entities/category";
@@ -54,29 +57,26 @@ import {
   EditSelectCell,
   DisplayCell,
   buildUpdatePayload,
-  typeOptions,
+  TYPE_OPTIONS,
   categoryOptions,
   accountOptions,
   type NavigateDirection,
 } from "@/widgets/spreadsheet/EditableCells";
 
-const TYPE_LABELS: Record<string, string> = {
-  expense: "支出",
-  income: "收入",
-  transfer: "转账",
-};
-
-const TYPE_ICONS: Record<string, React.ReactNode> = {
-  expense: <ArrowDownRight className="size-3 text-red-500" />,
-  income: <ArrowUpRight className="size-3 text-emerald-500" />,
-  transfer: <ArrowLeftRight className="size-3 text-blue-500" />,
-};
-
-const TYPE_COLORS: Record<string, string> = {
-  expense: "text-red-500",
-  income: "text-emerald-500",
-  transfer: "text-blue-500",
-};
+// Shared column sizes (used by both tanstack columns and quick-add row)
+const COL_SIZES = {
+  rowNumber: 48,
+  date: 120,
+  name: 160,
+  amount: 120,
+  type: 90,
+  category_id: 130,
+  account_id: 120,
+  to_account_id: 120,
+  tags: 120,
+  description: 160,
+  actions: 50,
+} as const;
 
 // Editable column ids (excluding row# and actions)
 const EDITABLE_COLS = [
@@ -568,7 +568,7 @@ export default function SpreadsheetPage() {
       columnHelper.display({
         id: "rowNumber",
         header: "#",
-        size: 48,
+        size: COL_SIZES.rowNumber,
         cell: (info) => {
           const rowNum = page * pageSize + info.row.index + 1;
           const isFocused = focusedCell?.rowIndex === info.row.index && focusedCell?.colIndex === 0;
@@ -587,7 +587,7 @@ export default function SpreadsheetPage() {
       // Editable columns
       columnHelper.accessor("date", {
         header: "日期",
-        size: 120,
+        size: COL_SIZES.date,
         cell: (info) => {
           const ri = info.row.index;
           const rowId = info.row.original.id;
@@ -618,7 +618,7 @@ export default function SpreadsheetPage() {
       }),
       columnHelper.accessor("name", {
         header: "名称",
-        size: 160,
+        size: COL_SIZES.name,
         cell: (info) => {
           const ri = info.row.index;
           const rowId = info.row.original.id;
@@ -648,7 +648,7 @@ export default function SpreadsheetPage() {
       }),
       columnHelper.accessor("amount", {
         header: "金额",
-        size: 120,
+        size: COL_SIZES.amount,
         cell: (info) => {
           const ri = info.row.index;
           const rowId = info.row.original.id;
@@ -685,7 +685,7 @@ export default function SpreadsheetPage() {
       }),
       columnHelper.accessor("type", {
         header: "类型",
-        size: 90,
+        size: COL_SIZES.type,
         cell: (info) => {
           const ri = info.row.index;
           const rowId = info.row.original.id;
@@ -697,7 +697,7 @@ export default function SpreadsheetPage() {
             return (
               <EditSelectCell
                 value={val}
-                options={typeOptions()}
+                options={TYPE_OPTIONS}
                 onSave={(v) => saveEdit(rowId, "type", v)}
                 onCancel={cancelEdit}
                 onNavigate={(dir) => handleNavigate(ri, 4, dir)}
@@ -721,7 +721,7 @@ export default function SpreadsheetPage() {
       }),
       columnHelper.accessor("category_id", {
         header: "分类",
-        size: 130,
+        size: COL_SIZES.category_id,
         cell: (info) => {
           const ri = info.row.index;
           const rowId = info.row.original.id;
@@ -759,7 +759,7 @@ export default function SpreadsheetPage() {
       }),
       columnHelper.accessor("account_id", {
         header: "账户",
-        size: 120,
+        size: COL_SIZES.account_id,
         cell: (info) => {
           const ri = info.row.index;
           const rowId = info.row.original.id;
@@ -797,7 +797,7 @@ export default function SpreadsheetPage() {
       }),
       columnHelper.accessor("to_account_id", {
         header: "目标账户",
-        size: 120,
+        size: COL_SIZES.to_account_id,
         cell: (info) => {
           const ri = info.row.index;
           const rowId = info.row.original.id;
@@ -834,7 +834,7 @@ export default function SpreadsheetPage() {
       }),
       columnHelper.accessor("tags", {
         header: "标签",
-        size: 120,
+        size: COL_SIZES.tags,
         cell: (info) => {
           const ri = info.row.index;
           const rowId = info.row.original.id;
@@ -877,7 +877,7 @@ export default function SpreadsheetPage() {
       }),
       columnHelper.accessor("description", {
         header: "备注",
-        size: 160,
+        size: COL_SIZES.description,
         cell: (info) => {
           const ri = info.row.index;
           const rowId = info.row.original.id;
@@ -909,7 +909,7 @@ export default function SpreadsheetPage() {
       columnHelper.display({
         id: "actions",
         header: "",
-        size: 50,
+        size: COL_SIZES.actions,
         cell: (info) => (
           <Button
             variant="ghost"
@@ -992,7 +992,7 @@ export default function SpreadsheetPage() {
           if (isEditing) return <EditNumberCell value={quickAdd.amount} onSave={(v) => { setQuickAdd({ ...quickAdd, amount: v }); setQuickAddEditing(null); }} {...commonProps} />;
           return <DisplayCell value={quickAdd.amount} focused={isFocused} onEdit={() => { setFocusedCell({ rowIndex: -1, colIndex }); setQuickAddEditing(colId); }} align="right" />;
         case "type":
-          if (isEditing) return <EditSelectCell value={quickAdd.type} options={typeOptions()} onSave={(v) => setQuickAdd({ ...quickAdd, type: v as QuickAddDraft["type"] })} {...commonProps} />;
+          if (isEditing) return <EditSelectCell value={quickAdd.type} options={TYPE_OPTIONS} onSave={(v) => setQuickAdd({ ...quickAdd, type: v as QuickAddDraft["type"] })} {...commonProps} />;
           return <DisplayCell value={quickAdd.type} displayValue={<Badge variant="secondary" className={`text-xs ${TYPE_COLORS[quickAdd.type]}`}>{TYPE_LABELS[quickAdd.type]}</Badge>} focused={isFocused} onEdit={() => { setFocusedCell({ rowIndex: -1, colIndex }); setQuickAddEditing(colId); }} />;
         case "category_id":
           if (isEditing) return <EditSelectCell value={quickAdd.category_id} options={catOpts} onSave={(v) => setQuickAdd({ ...quickAdd, category_id: v })} {...commonProps} />;
@@ -1017,31 +1017,31 @@ export default function SpreadsheetPage() {
     return (
       <TableRow className="bg-primary/[0.03] border-t-2 border-dashed border-primary/20">
         {/* Row # */}
-        <TableCell className="h-10 p-0 w-12">
+        <TableCell className="h-10 p-0" style={{ width: COL_SIZES.rowNumber }}>
           <div className="text-center text-xs py-1 text-muted-foreground">
             <Plus className="size-3 inline" />
           </div>
         </TableCell>
         {/* date */}
-        <TableCell className="h-10 p-0" style={{ width: 120 }}>{qaCell("date", 1)}</TableCell>
+        <TableCell className="h-10 p-0" style={{ width: COL_SIZES.date }}>{qaCell("date", 1)}</TableCell>
         {/* name */}
-        <TableCell className="h-10 p-0" style={{ width: 160 }}>{qaCell("name", 2)}</TableCell>
+        <TableCell className="h-10 p-0" style={{ width: COL_SIZES.name }}>{qaCell("name", 2)}</TableCell>
         {/* amount */}
-        <TableCell className="h-10 p-0" style={{ width: 120 }}>{qaCell("amount", 3)}</TableCell>
+        <TableCell className="h-10 p-0" style={{ width: COL_SIZES.amount }}>{qaCell("amount", 3)}</TableCell>
         {/* type */}
-        <TableCell className="h-10 p-0" style={{ width: 90 }}>{qaCell("type", 4)}</TableCell>
+        <TableCell className="h-10 p-0" style={{ width: COL_SIZES.type }}>{qaCell("type", 4)}</TableCell>
         {/* category */}
-        <TableCell className="h-10 p-0" style={{ width: 130 }}>{qaCell("category_id", 5)}</TableCell>
+        <TableCell className="h-10 p-0" style={{ width: COL_SIZES.category_id }}>{qaCell("category_id", 5)}</TableCell>
         {/* account */}
-        <TableCell className="h-10 p-0" style={{ width: 120 }}>{qaCell("account_id", 6)}</TableCell>
+        <TableCell className="h-10 p-0" style={{ width: COL_SIZES.account_id }}>{qaCell("account_id", 6)}</TableCell>
         {/* to_account */}
-        <TableCell className="h-10 p-0" style={{ width: 120 }}>{qaCell("to_account_id", 7)}</TableCell>
+        <TableCell className="h-10 p-0" style={{ width: COL_SIZES.to_account_id }}>{qaCell("to_account_id", 7)}</TableCell>
         {/* tags */}
-        <TableCell className="h-10 p-0" style={{ width: 120 }}>{qaCell("tags", 8)}</TableCell>
+        <TableCell className="h-10 p-0" style={{ width: COL_SIZES.tags }}>{qaCell("tags", 8)}</TableCell>
         {/* description */}
-        <TableCell className="h-10 p-0" style={{ width: 160 }}>{qaCell("description", 9)}</TableCell>
+        <TableCell className="h-10 p-0" style={{ width: COL_SIZES.description }}>{qaCell("description", 9)}</TableCell>
         {/* actions: save button */}
-        <TableCell className="h-10 p-0" style={{ width: 50 }}>
+        <TableCell className="h-10 p-0" style={{ width: COL_SIZES.actions }}>
           <Button
             variant="ghost"
             size="icon"
@@ -1248,7 +1248,7 @@ export default function SpreadsheetPage() {
               ))}
             </TableHeader>
             <TableBody>
-              {table.getRowModel().rows.length === 0 && !quickAdd ? (
+              {table.getRowModel().rows.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={columns.length} className="h-32 text-center text-muted-foreground">
                     暂无交易记录

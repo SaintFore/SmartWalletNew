@@ -1,6 +1,7 @@
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import type { TransactionRead } from "@/entities/transaction";
+import { TYPE_LABELS } from "@/entities/transaction";
 import type { CategoryRead } from "@/entities/category";
 import type { AccountWithBalance } from "@/entities/account";
 
@@ -8,12 +9,6 @@ interface ExportColumn {
   header: string;
   accessor: (t: TransactionRead) => string | number;
 }
-
-const TYPE_LABELS: Record<string, string> = {
-  expense: "支出",
-  income: "收入",
-  transfer: "转账",
-};
 
 function buildColumns(
   categories: CategoryRead[],
