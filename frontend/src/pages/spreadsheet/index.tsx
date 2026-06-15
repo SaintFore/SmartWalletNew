@@ -559,8 +559,25 @@ export default function SpreadsheetPage() {
     [filters, categories, accounts, fetchAllTransactions],
   );
 
-  // ── Column definitions ───────────────────────────────────────────────────
+  // ── Column definitions (factory pattern) ────────────────────────────────
   const columnHelper = createColumnHelper<TransactionRead>();
+
+  // Cell renderer: eliminates per-column boilerplate (ri/rowId/isEditing/isFocused/handlers)
+  function rc(
+    info: { row: { index: number; original: TransactionRead }; getValue: () => unknown },
+    colId: string,
+    colIndex: number,
+    editCell: (props: { value: string; rowId: number }) => React.ReactNode,
+    displayCell: (props: { value: string; rowId: number; focused: boolean }) => React.ReactNode,
+  ) {
+    const ri = info.row.index;
+    const rowId = info.row.original.id;
+    const isEditing = editingCell?.rowId === rowId && editingCell?.columnId === colId;
+    const isFocused = focusedCell?.rowIndex === ri && focusedCell?.colIndex === colIndex;
+    const val = String(info.getValue() ?? "");
+    if (isEditing) return editCell({ value: val, rowId });
+    return displayCell({ value: val, rowId, focused: isFocused });
+  }
 
   const columns = useMemo(
     () => [
@@ -574,11 +591,7 @@ export default function SpreadsheetPage() {
           const isFocused = focusedCell?.rowIndex === info.row.index && focusedCell?.colIndex === 0;
           const isFlashing = jumpFlash === rowNum;
           return (
-            <div
-              className={`text-center text-xs tabular-nums py-1 select-none ${
-                isFocused ? "bg-primary/10 font-bold" : ""
-              } ${isFlashing ? "bg-primary/20 animate-pulse" : ""} text-muted-foreground`}
-            >
+            <div className={`text-center text-xs tabular-nums py-1 select-none ${isFocused ? "bg-primary/10 font-bold" : ""} ${isFlashing ? "bg-primary/20 animate-pulse" : ""} text-muted-foreground`}>
               {rowNum}
             </div>
           );
@@ -588,322 +601,86 @@ export default function SpreadsheetPage() {
       columnHelper.accessor("date", {
         header: "日期",
         size: COL_SIZES.date,
-        cell: (info) => {
-          const ri = info.row.index;
-          const rowId = info.row.original.id;
-          const isEditing = editingCell?.rowId === rowId && editingCell?.columnId === "date";
-          const isFocused = focusedCell?.rowIndex === ri && focusedCell?.colIndex === 1;
-          const val = info.getValue().slice(0, 10);
-
-          if (isEditing) {
-            return (
-              <EditDateCell
-                value={val}
-                onSave={(v) => saveEdit(rowId, "date", v)}
-                onCancel={cancelEdit}
-                onNavigate={(dir) => handleNavigate(ri, 1, dir)}
-                disabled={updateMutation.isPending}
-              />
-            );
-          }
-          return (
-            <DisplayCell
-              value={val}
-              onEdit={() => { setFocusedCell({ rowIndex: ri, colIndex: 1 }); startEdit(rowId, "date"); }}
-              className="tabular-nums"
-              focused={isFocused}
-            />
-          );
-        },
+        cell: (info) => rc(info, "date", 1,
+          ({ value, rowId }) => <EditDateCell value={value.slice(0, 10)} onSave={(v) => saveEdit(rowId, "date", v)} onCancel={cancelEdit} onNavigate={(dir) => handleNavigate(info.row.index, 1, dir)} disabled={updateMutation.isPending} />,
+          ({ value, rowId, focused }) => <DisplayCell value={value.slice(0, 10)} onEdit={() => { setFocusedCell({ rowIndex: info.row.index, colIndex: 1 }); startEdit(rowId, "date"); }} className="tabular-nums" focused={focused} />,
+        ),
       }),
       columnHelper.accessor("name", {
         header: "名称",
         size: COL_SIZES.name,
-        cell: (info) => {
-          const ri = info.row.index;
-          const rowId = info.row.original.id;
-          const isEditing = editingCell?.rowId === rowId && editingCell?.columnId === "name";
-          const isFocused = focusedCell?.rowIndex === ri && focusedCell?.colIndex === 2;
-          const val = info.getValue() || "";
-
-          if (isEditing) {
-            return (
-              <EditTextCell
-                value={val}
-                onSave={(v) => saveEdit(rowId, "name", v)}
-                onCancel={cancelEdit}
-                onNavigate={(dir) => handleNavigate(ri, 2, dir)}
-                disabled={updateMutation.isPending}
-              />
-            );
-          }
-          return (
-            <DisplayCell
-              value={val}
-              onEdit={() => { setFocusedCell({ rowIndex: ri, colIndex: 2 }); startEdit(rowId, "name"); }}
-              focused={isFocused}
-            />
-          );
-        },
+        cell: (info) => rc(info, "name", 2,
+          ({ value, rowId }) => <EditTextCell value={value} onSave={(v) => saveEdit(rowId, "name", v)} onCancel={cancelEdit} onNavigate={(dir) => handleNavigate(info.row.index, 2, dir)} disabled={updateMutation.isPending} />,
+          ({ value, rowId, focused }) => <DisplayCell value={value} onEdit={() => { setFocusedCell({ rowIndex: info.row.index, colIndex: 2 }); startEdit(rowId, "name"); }} focused={focused} />,
+        ),
       }),
       columnHelper.accessor("amount", {
         header: "金额",
         size: COL_SIZES.amount,
-        cell: (info) => {
-          const ri = info.row.index;
-          const rowId = info.row.original.id;
-          const isEditing = editingCell?.rowId === rowId && editingCell?.columnId === "amount";
-          const isFocused = focusedCell?.rowIndex === ri && focusedCell?.colIndex === 3;
-          const val = String(info.getValue());
-          const type = info.row.original.type;
-
-          if (isEditing) {
-            return (
-              <EditNumberCell
-                value={val}
-                onSave={(v) => saveEdit(rowId, "amount", v)}
-                onCancel={cancelEdit}
-                onNavigate={(dir) => handleNavigate(ri, 3, dir)}
-                disabled={updateMutation.isPending}
-              />
-            );
-          }
-          return (
-            <DisplayCell
-              value={val}
-              displayValue={
-                <span className={`font-medium tabular-nums ${TYPE_COLORS[type]}`}>
-                  {TYPE_ICONS[type]} {formatCurrency(info.getValue())}
-                </span>
-              }
-              onEdit={() => { setFocusedCell({ rowIndex: ri, colIndex: 3 }); startEdit(rowId, "amount"); }}
-              align="right"
-              focused={isFocused}
-            />
-          );
-        },
+        cell: (info) => rc(info, "amount", 3,
+          ({ value, rowId }) => <EditNumberCell value={value} onSave={(v) => saveEdit(rowId, "amount", v)} onCancel={cancelEdit} onNavigate={(dir) => handleNavigate(info.row.index, 3, dir)} disabled={updateMutation.isPending} />,
+          ({ value, rowId, focused }) => {
+            const type = info.row.original.type;
+            return <DisplayCell value={value} displayValue={<span className={`font-medium tabular-nums ${TYPE_COLORS[type]}`}>{TYPE_ICONS[type]} {formatCurrency(info.getValue())}</span>} onEdit={() => { setFocusedCell({ rowIndex: info.row.index, colIndex: 3 }); startEdit(rowId, "amount"); }} align="right" focused={focused} />;
+          },
+        ),
       }),
       columnHelper.accessor("type", {
         header: "类型",
         size: COL_SIZES.type,
-        cell: (info) => {
-          const ri = info.row.index;
-          const rowId = info.row.original.id;
-          const isEditing = editingCell?.rowId === rowId && editingCell?.columnId === "type";
-          const isFocused = focusedCell?.rowIndex === ri && focusedCell?.colIndex === 4;
-          const val = info.getValue();
-
-          if (isEditing) {
-            return (
-              <EditSelectCell
-                value={val}
-                options={TYPE_OPTIONS}
-                onSave={(v) => saveEdit(rowId, "type", v)}
-                onCancel={cancelEdit}
-                onNavigate={(dir) => handleNavigate(ri, 4, dir)}
-                disabled={updateMutation.isPending}
-              />
-            );
-          }
-          return (
-            <DisplayCell
-              value={val}
-              displayValue={
-                <Badge variant="secondary" className={`text-xs ${TYPE_COLORS[val]}`}>
-                  {TYPE_ICONS[val]} {TYPE_LABELS[val]}
-                </Badge>
-              }
-              onEdit={() => { setFocusedCell({ rowIndex: ri, colIndex: 4 }); startEdit(rowId, "type"); }}
-              focused={isFocused}
-            />
-          );
-        },
+        cell: (info) => rc(info, "type", 4,
+          ({ value, rowId }) => <EditSelectCell value={value} options={TYPE_OPTIONS} onSave={(v) => saveEdit(rowId, "type", v)} onCancel={cancelEdit} onNavigate={(dir) => handleNavigate(info.row.index, 4, dir)} disabled={updateMutation.isPending} />,
+          ({ value, rowId, focused }) => <DisplayCell value={value} displayValue={<Badge variant="secondary" className={`text-xs ${TYPE_COLORS[value]}`}>{TYPE_ICONS[value]} {TYPE_LABELS[value]}</Badge>} onEdit={() => { setFocusedCell({ rowIndex: info.row.index, colIndex: 4 }); startEdit(rowId, "type"); }} focused={focused} />,
+        ),
       }),
       columnHelper.accessor("category_id", {
         header: "分类",
         size: COL_SIZES.category_id,
-        cell: (info) => {
-          const ri = info.row.index;
-          const rowId = info.row.original.id;
-          const isEditing = editingCell?.rowId === rowId && editingCell?.columnId === "category_id";
-          const isFocused = focusedCell?.rowIndex === ri && focusedCell?.colIndex === 5;
-          const cat = categories?.find((c) => c.id === info.getValue());
-          const val = String(info.getValue());
-
-          if (isEditing) {
-            return (
-              <EditSelectCell
-                value={val}
-                options={catOpts}
-                onSave={(v) => saveEdit(rowId, "category_id", v)}
-                onCancel={cancelEdit}
-                onNavigate={(dir) => handleNavigate(ri, 5, dir)}
-                disabled={updateMutation.isPending}
-              />
-            );
-          }
-          return (
-            <DisplayCell
-              value={val}
-              displayValue={
-                <span className="text-sm">
-                  {cat?.icon ? `${cat.icon} ` : ""}
-                  {cat?.name || "-"}
-                </span>
-              }
-              onEdit={() => { setFocusedCell({ rowIndex: ri, colIndex: 5 }); startEdit(rowId, "category_id"); }}
-              focused={isFocused}
-            />
-          );
-        },
+        cell: (info) => rc(info, "category_id", 5,
+          ({ value, rowId }) => <EditSelectCell value={value} options={catOpts} onSave={(v) => saveEdit(rowId, "category_id", v)} onCancel={cancelEdit} onNavigate={(dir) => handleNavigate(info.row.index, 5, dir)} disabled={updateMutation.isPending} />,
+          ({ value, rowId, focused }) => {
+            const cat = categories?.find((c) => c.id === info.getValue());
+            return <DisplayCell value={value} displayValue={<span className="text-sm">{cat?.icon ? `${cat.icon} ` : ""}{cat?.name || "-"}</span>} onEdit={() => { setFocusedCell({ rowIndex: info.row.index, colIndex: 5 }); startEdit(rowId, "category_id"); }} focused={focused} />;
+          },
+        ),
       }),
       columnHelper.accessor("account_id", {
         header: "账户",
         size: COL_SIZES.account_id,
-        cell: (info) => {
-          const ri = info.row.index;
-          const rowId = info.row.original.id;
-          const isEditing = editingCell?.rowId === rowId && editingCell?.columnId === "account_id";
-          const isFocused = focusedCell?.rowIndex === ri && focusedCell?.colIndex === 6;
-          const acc = accounts?.find((a) => a.id === info.getValue());
-          const val = String(info.getValue());
-
-          if (isEditing) {
-            return (
-              <EditSelectCell
-                value={val}
-                options={accOpts}
-                onSave={(v) => saveEdit(rowId, "account_id", v)}
-                onCancel={cancelEdit}
-                onNavigate={(dir) => handleNavigate(ri, 6, dir)}
-                disabled={updateMutation.isPending}
-              />
-            );
-          }
-          return (
-            <DisplayCell
-              value={val}
-              displayValue={
-                <span className="text-sm">
-                  {acc?.icon ? `${acc.icon} ` : ""}
-                  {acc?.name || "-"}
-                </span>
-              }
-              onEdit={() => { setFocusedCell({ rowIndex: ri, colIndex: 6 }); startEdit(rowId, "account_id"); }}
-              focused={isFocused}
-            />
-          );
-        },
+        cell: (info) => rc(info, "account_id", 6,
+          ({ value, rowId }) => <EditSelectCell value={value} options={accOpts} onSave={(v) => saveEdit(rowId, "account_id", v)} onCancel={cancelEdit} onNavigate={(dir) => handleNavigate(info.row.index, 6, dir)} disabled={updateMutation.isPending} />,
+          ({ value, rowId, focused }) => {
+            const acc = accounts?.find((a) => a.id === info.getValue());
+            return <DisplayCell value={value} displayValue={<span className="text-sm">{acc?.icon ? `${acc.icon} ` : ""}{acc?.name || "-"}</span>} onEdit={() => { setFocusedCell({ rowIndex: info.row.index, colIndex: 6 }); startEdit(rowId, "account_id"); }} focused={focused} />;
+          },
+        ),
       }),
       columnHelper.accessor("to_account_id", {
         header: "目标账户",
         size: COL_SIZES.to_account_id,
-        cell: (info) => {
-          const ri = info.row.index;
-          const rowId = info.row.original.id;
-          const isEditing = editingCell?.rowId === rowId && editingCell?.columnId === "to_account_id";
-          const isFocused = focusedCell?.rowIndex === ri && focusedCell?.colIndex === 7;
-          const val = info.getValue() ? String(info.getValue()) : "";
-          const acc = info.getValue() ? accounts?.find((a) => a.id === info.getValue()) : null;
-
-          if (isEditing) {
-            return (
-              <EditSelectCell
-                value={val}
-                options={[{ value: "", label: "-" }, ...accOpts]}
-                onSave={(v) => saveEdit(rowId, "to_account_id", v)}
-                onCancel={cancelEdit}
-                onNavigate={(dir) => handleNavigate(ri, 7, dir)}
-                disabled={updateMutation.isPending}
-              />
-            );
-          }
-          return (
-            <DisplayCell
-              value={val}
-              displayValue={
-                <span className="text-sm">
-                  {acc ? `${acc.icon ? `${acc.icon} ` : ""}${acc.name}` : "-"}
-                </span>
-              }
-              onEdit={() => { setFocusedCell({ rowIndex: ri, colIndex: 7 }); startEdit(rowId, "to_account_id"); }}
-              focused={isFocused}
-            />
-          );
-        },
+        cell: (info) => rc(info, "to_account_id", 7,
+          ({ value, rowId }) => <EditSelectCell value={value} options={[{ value: "", label: "-" }, ...accOpts]} onSave={(v) => saveEdit(rowId, "to_account_id", v)} onCancel={cancelEdit} onNavigate={(dir) => handleNavigate(info.row.index, 7, dir)} disabled={updateMutation.isPending} />,
+          ({ value, rowId, focused }) => {
+            const acc = info.getValue() ? accounts?.find((a) => a.id === info.getValue()) : null;
+            return <DisplayCell value={value} displayValue={<span className="text-sm">{acc ? `${acc.icon ? `${acc.icon} ` : ""}${acc.name}` : "-"}</span>} onEdit={() => { setFocusedCell({ rowIndex: info.row.index, colIndex: 7 }); startEdit(rowId, "to_account_id"); }} focused={focused} />;
+          },
+        ),
       }),
       columnHelper.accessor("tags", {
         header: "标签",
         size: COL_SIZES.tags,
-        cell: (info) => {
-          const ri = info.row.index;
-          const rowId = info.row.original.id;
-          const isEditing = editingCell?.rowId === rowId && editingCell?.columnId === "tags";
-          const isFocused = focusedCell?.rowIndex === ri && focusedCell?.colIndex === 8;
-          const val = info.getValue() || "";
-
-          if (isEditing) {
-            return (
-              <EditTextCell
-                value={val}
-                onSave={(v) => saveEdit(rowId, "tags", v)}
-                onCancel={cancelEdit}
-                onNavigate={(dir) => handleNavigate(ri, 8, dir)}
-                disabled={updateMutation.isPending}
-              />
-            );
-          }
-          return (
-            <DisplayCell
-              value={val}
-              displayValue={
-                val ? (
-                  <div className="flex gap-1 flex-wrap">
-                    {val.split(",").map((tag) => (
-                      <Badge key={tag} variant="secondary" className="text-xs">
-                        {tag.trim()}
-                      </Badge>
-                    ))}
-                  </div>
-                ) : (
-                  <span className="text-muted-foreground italic">-</span>
-                )
-              }
-              onEdit={() => { setFocusedCell({ rowIndex: ri, colIndex: 8 }); startEdit(rowId, "tags"); }}
-              focused={isFocused}
-            />
-          );
-        },
+        cell: (info) => rc(info, "tags", 8,
+          ({ value, rowId }) => <EditTextCell value={value} onSave={(v) => saveEdit(rowId, "tags", v)} onCancel={cancelEdit} onNavigate={(dir) => handleNavigate(info.row.index, 8, dir)} disabled={updateMutation.isPending} />,
+          ({ value, rowId, focused }) => <DisplayCell value={value} displayValue={value ? <div className="flex gap-1 flex-wrap">{value.split(",").map((tag) => <Badge key={tag} variant="secondary" className="text-xs">{tag.trim()}</Badge>)}</div> : <span className="text-muted-foreground italic">-</span>} onEdit={() => { setFocusedCell({ rowIndex: info.row.index, colIndex: 8 }); startEdit(rowId, "tags"); }} focused={focused} />,
+        ),
       }),
       columnHelper.accessor("description", {
         header: "备注",
         size: COL_SIZES.description,
-        cell: (info) => {
-          const ri = info.row.index;
-          const rowId = info.row.original.id;
-          const isEditing = editingCell?.rowId === rowId && editingCell?.columnId === "description";
-          const isFocused = focusedCell?.rowIndex === ri && focusedCell?.colIndex === 9;
-          const val = info.getValue() || "";
-
-          if (isEditing) {
-            return (
-              <EditTextCell
-                value={val}
-                onSave={(v) => saveEdit(rowId, "description", v)}
-                onCancel={cancelEdit}
-                onNavigate={(dir) => handleNavigate(ri, 9, dir)}
-                disabled={updateMutation.isPending}
-              />
-            );
-          }
-          return (
-            <DisplayCell
-              value={val}
-              onEdit={() => { setFocusedCell({ rowIndex: ri, colIndex: 9 }); startEdit(rowId, "description"); }}
-              focused={isFocused}
-            />
-          );
-        },
+        cell: (info) => rc(info, "description", 9,
+          ({ value, rowId }) => <EditTextCell value={value} onSave={(v) => saveEdit(rowId, "description", v)} onCancel={cancelEdit} onNavigate={(dir) => handleNavigate(info.row.index, 9, dir)} disabled={updateMutation.isPending} />,
+          ({ value, rowId, focused }) => <DisplayCell value={value} onEdit={() => { setFocusedCell({ rowIndex: info.row.index, colIndex: 9 }); startEdit(rowId, "description"); }} focused={focused} />,
+        ),
       }),
       // Actions column
       columnHelper.display({
@@ -911,31 +688,13 @@ export default function SpreadsheetPage() {
         header: "",
         size: COL_SIZES.actions,
         cell: (info) => (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="size-7 opacity-60 hover:opacity-100 hover:text-destructive"
-            onClick={() => handleDelete(info.row.original.id)}
-            disabled={deleteMutation.isPending}
-          >
+          <Button variant="ghost" size="icon" className="size-7 opacity-60 hover:opacity-100 hover:text-destructive" onClick={() => handleDelete(info.row.original.id)} disabled={deleteMutation.isPending}>
             <Trash2 className="size-3.5" />
           </Button>
         ),
       }),
     ],
-    [
-      editingCell,
-      focusedCell,
-      categories,
-      accounts,
-      catOpts,
-      accOpts,
-      page,
-      pageSize,
-      jumpFlash,
-      updateMutation.isPending,
-      deleteMutation.isPending,
-    ],
+    [editingCell, focusedCell, categories, accounts, catOpts, accOpts, page, pageSize, jumpFlash, updateMutation.isPending, deleteMutation.isPending],
   );
 
   const table = useReactTable({
