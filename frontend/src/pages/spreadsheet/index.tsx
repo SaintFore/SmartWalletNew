@@ -215,9 +215,9 @@ export default function SpreadsheetPage() {
     );
   }
 
-  function handleDelete(id: number) {
+  const handleDelete = useCallback((id: number) => {
     deleteMutation.mutate(id);
-  }
+  }, [deleteMutation]);
 
   // ── Navigation from edit cells ───────────────────────────────────────────
   const handleNavigate = useCallback(
@@ -266,11 +266,9 @@ export default function SpreadsheetPage() {
     [transactions.length, totalCols],
   );
 
-  // ── Ref for saveQuickAdd (used by keyboard handler) ──────────────────────
-  const saveQuickAddRef = useRef<() => void>(() => {});
-
   // ── Quick-add save ───────────────────────────────────────────────────────
-  function saveQuickAdd() {
+  const saveQuickAddRef = useRef<() => void>(() => {});
+  saveQuickAddRef.current = () => {
     const amount = parseFloat(quickAdd.amount);
     if (isNaN(amount) || amount <= 0) return;
     const category_id = parseInt(quickAdd.category_id, 10);
@@ -296,12 +294,7 @@ export default function SpreadsheetPage() {
         },
       },
     );
-  }
-
-  // Keep saveQuickAddRef in sync
-  useEffect(() => {
-    saveQuickAddRef.current = saveQuickAdd;
-  });
+  };
 
   // ── Refs for stable keyboard handler ──────────────────────────────────────
   const stateRef = useRef({
@@ -312,12 +305,13 @@ export default function SpreadsheetPage() {
     totalCols: totalCols,
     pageSize: pageSize,
     total: total,
+    showExportMenu: showExportMenu,
   });
 
   // Keep refs in sync
   useEffect(() => {
     stateRef.current = {
-      focusedCell, editingCell, jumpBuffer, transactions, totalCols, pageSize, total,
+      focusedCell, editingCell, jumpBuffer, transactions, totalCols, pageSize, total, showExportMenu,
     };
   });
 
@@ -350,6 +344,7 @@ export default function SpreadsheetPage() {
         jumpBuffer: jb,
         transactions: txns,
         totalCols: tc,
+        showExportMenu: sem,
       } = stateRef.current;
 
       // ── Alt+E: focus table ─────────────────────────────────────────────
@@ -365,6 +360,13 @@ export default function SpreadsheetPage() {
       if (e.altKey && e.key.toLowerCase() === "n") {
         e.preventDefault();
         saveQuickAddRef.current();
+        return;
+      }
+
+      // ── Escape: close export menu ─────────────────────────────────────
+      if (e.key === "Escape" && sem) {
+        e.preventDefault();
+        setShowExportMenu(false);
         return;
       }
 
@@ -748,7 +750,7 @@ export default function SpreadsheetPage() {
           if (isEditing) return <EditTextCell value={quickAdd.name} onSave={(v) => setQuickAdd({ ...quickAdd, name: v })} {...commonProps} />;
           return <DisplayCell value={quickAdd.name} focused={isFocused} onEdit={() => { setFocusedCell({ rowIndex: -1, colIndex }); setQuickAddEditing(colId); }} />;
         case "amount":
-          if (isEditing) return <EditNumberCell value={quickAdd.amount} onSave={(v) => { setQuickAdd({ ...quickAdd, amount: v }); setQuickAddEditing(null); }} {...commonProps} />;
+          if (isEditing) return <EditNumberCell value={quickAdd.amount} onSave={(v) => setQuickAdd({ ...quickAdd, amount: v })} {...commonProps} />;
           return <DisplayCell value={quickAdd.amount} focused={isFocused} onEdit={() => { setFocusedCell({ rowIndex: -1, colIndex }); setQuickAddEditing(colId); }} align="right" />;
         case "type":
           if (isEditing) return <EditSelectCell value={quickAdd.type} options={TYPE_OPTIONS} onSave={(v) => setQuickAdd({ ...quickAdd, type: v as QuickAddDraft["type"] })} {...commonProps} />;
@@ -805,7 +807,7 @@ export default function SpreadsheetPage() {
             variant="ghost"
             size="icon"
             className="size-7 text-primary hover:text-primary"
-            onClick={saveQuickAdd}
+            onClick={() => saveQuickAddRef.current()}
             disabled={createMutation.isPending || !quickAdd.amount || parseFloat(quickAdd.amount) <= 0}
             title="保存新记录"
           >
