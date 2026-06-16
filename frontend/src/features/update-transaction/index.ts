@@ -1,4 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { accountKeys } from "@/entities/account";
+import { budgetKeys } from "@/entities/budget";
 import {
   transactionKeys,
   type TransactionUpdate,
@@ -22,6 +24,8 @@ export function useUpdateTransaction() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: transactionKeys.all });
+      queryClient.invalidateQueries({ queryKey: accountKeys.all });
+      queryClient.invalidateQueries({ queryKey: budgetKeys.all });
     },
   });
 }

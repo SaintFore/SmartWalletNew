@@ -1,4 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { accountKeys } from "@/entities/account";
+import { budgetKeys } from "@/entities/budget";
 import { transactionKeys } from "@/entities/transaction";
 import { api } from "@/shared/api/client";
 
@@ -14,6 +16,8 @@ export function useDeleteTransaction() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: transactionKeys.all });
+      queryClient.invalidateQueries({ queryKey: accountKeys.all });
+      queryClient.invalidateQueries({ queryKey: budgetKeys.all });
     },
   });
 }

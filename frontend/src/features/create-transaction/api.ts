@@ -1,10 +1,18 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { accountKeys } from "@/entities/account";
+import { budgetKeys } from "@/entities/budget";
 import {
   transactionKeys,
   type QuickTransactionCreate,
   type TransactionCreate,
 } from "@/entities/transaction";
 import { api } from "@/shared/api/client";
+
+function invalidateRelatedQueries(queryClient: ReturnType<typeof useQueryClient>) {
+  queryClient.invalidateQueries({ queryKey: transactionKeys.all });
+  queryClient.invalidateQueries({ queryKey: accountKeys.all });
+  queryClient.invalidateQueries({ queryKey: budgetKeys.all });
+}
 
 export function useCreateTransaction() {
   const queryClient = useQueryClient();
@@ -15,9 +23,7 @@ export function useCreateTransaction() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: transactionKeys.all });
-    },
+    onSuccess: () => invalidateRelatedQueries(queryClient),
   });
 }
 
@@ -30,8 +36,6 @@ export function useCreateQuickTransaction() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: transactionKeys.all });
-    },
+    onSuccess: () => invalidateRelatedQueries(queryClient),
   });
 }
