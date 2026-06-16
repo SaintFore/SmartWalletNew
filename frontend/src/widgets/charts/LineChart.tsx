@@ -29,7 +29,7 @@ export function LineChart({
     return () => {
       d3.selectAll(".d3-tooltip").remove();
     };
-  }, []);
+  }, [data]);
 
   useEffect(() => {
     if (!svgRef.current || data.length === 0) return;
