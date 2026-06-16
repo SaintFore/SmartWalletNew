@@ -112,6 +112,10 @@ export function TransactionList({
     () => groupTransactionsByDate(transactions),
     [transactions],
   );
+  const categoriesMap = useMemo(
+    () => new Map(categories.map((c) => [c.id, c])),
+    [categories],
+  );
 
   if (isLoading) {
     return <TransactionListSkeleton />;
@@ -227,9 +231,7 @@ export function TransactionList({
             </div>
             <div className="flex flex-col gap-2">
               {dayTransactions.map((transaction, i) => {
-                const category = categories.find(
-                  (c) => c.id === transaction.category_id,
-                );
+                const category = categoriesMap.get(transaction.category_id);
                 const isEditing = draft?.id === transaction.id;
                 return (
                   <motion.div
