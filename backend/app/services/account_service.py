@@ -39,9 +39,6 @@ def get_all_with_balance(session: Session) -> list[AccountWithBalance]:
     balance_results = session.exec(balance_stmt).all()
     balance_map: dict[int, Decimal] = {row[0]: row[1] or Decimal("0") for row in balance_results}
 
-    # 查找有交易记录的账户
-    txn_account_ids = set(session.exec(select(Transaction.account_id).distinct()).all())
-
     return [
         AccountWithBalance(
             id=account.id,  # type: ignore[arg-type]
@@ -49,7 +46,7 @@ def get_all_with_balance(session: Session) -> list[AccountWithBalance]:
             icon=account.icon,
             is_default=account.is_default,
             balance=balance_map.get(account.id, Decimal("0")),  # type: ignore[arg-type]
-            has_transactions=account.id in txn_account_ids,  # type: ignore[arg-type]
+            has_transactions=account.id in balance_map,  # type: ignore[arg-type]
         )
         for account in accounts
     ]
