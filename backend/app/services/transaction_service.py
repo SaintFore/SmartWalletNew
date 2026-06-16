@@ -1,7 +1,7 @@
 from datetime import date
 from decimal import Decimal
 
-from sqlalchemy import or_
+from sqlalchemy import case, or_
 from sqlmodel import Session, col, func, select
 
 from app.models.account import Account
@@ -128,15 +128,35 @@ def get_monthly_summary(year: int, month: int, session: Session) -> TransactionS
     else:
         end_date = date(year, month + 1, 1)
 
+    date_filter = col(Transaction.date) >= start_date, col(Transaction.date) < end_date
+
+    # 用 SQL 聚合计算总体收支（排除 transfer）
+    totals_stmt = select(
+        func.sum(
+            case(
+                (Transaction.type == "expense", Transaction.amount),
+                else_=Decimal("0"),
+            )
+        ).label("total_expense"),
+        func.sum(
+            case(
+                (Transaction.type == "income", Transaction.amount),
+                else_=Decimal("0"),
+            )
+        ).label("total_income"),
+    ).where(*date_filter, Transaction.type != "transfer")
+    totals = session.exec(totals_stmt).one()
+    total_expense = totals[0] or Decimal("0")
+    total_income = totals[1] or Decimal("0")
+
+    # 获取所有交易用于明细分解
     statement = (
         select(Transaction)
-        .where(col(Transaction.date) >= start_date, col(Transaction.date) < end_date)
+        .where(*date_filter)
         .order_by(col(Transaction.date))
     )
     transactions = list(session.exec(statement).all())
 
-    total_expense = Decimal("0")
-    total_income = Decimal("0")
     category_totals: dict[int, CategorySummary] = {}
     daily_totals: dict[date, dict[str, Decimal]] = {}
     account_totals: dict[int, dict[str, object]] = {}
@@ -158,14 +178,9 @@ def get_monthly_summary(year: int, month: int, session: Session) -> TransactionS
     }
 
     for transaction in transactions:
-        # transfer 类型不计入收支
+        # transfer 类型不计入收支明细
         if transaction.type == "transfer":
             continue
-
-        if transaction.type == "income":
-            total_income += transaction.amount
-        else:
-            total_expense += transaction.amount
 
         if transaction.category_id not in category_totals:
             category = categories_by_id.get(transaction.category_id)
@@ -219,11 +234,11 @@ def get_monthly_summary(year: int, month: int, session: Session) -> TransactionS
     by_account = [
         AccountSummary(
             account_id=account_id,
-            account_name=str(data["account_name"]),
-            total_expense=Decimal(str(data["total_expense"])),
-            total_income=Decimal(str(data["total_income"])),
-            net=Decimal(str(data["total_income"])) - Decimal(str(data["total_expense"])),
-            count=int(str(data["count"])),
+            account_name=data["account_name"],  # type: ignore[arg-type]
+            total_expense=data["total_expense"],  # type: ignore[arg-type]
+            total_income=data["total_income"],  # type: ignore[arg-type]
+            net=data["total_income"] - data["total_expense"],  # type: ignore[arg-type]
+            count=data["count"],  # type: ignore[arg-type]
         )
         for account_id, data in account_totals.items()
     ]
