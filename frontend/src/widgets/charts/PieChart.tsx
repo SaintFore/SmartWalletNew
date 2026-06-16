@@ -1,12 +1,11 @@
 import { useEffect, useRef } from "react";
 import * as d3 from "d3";
 
+type DataItem = { name: string; value: number; color?: string };
+type PieDatum = d3.PieArcDatum<DataItem>;
+
 interface PieChartProps {
-  data: {
-    name: string;
-    value: number;
-    color?: string;
-  }[];
+  data: DataItem[];
   width?: number;
   height?: number;
   innerRadius?: number;
@@ -53,23 +52,18 @@ export function PieChart({
       .attr("transform", `translate(${width / 2},${height / 2})`);
 
     const pie = d3
-      .pie<(typeof data)[0]>()
+      .pie<DataItem>()
       .value((d) => d.value)
       .sort(null)
       .padAngle(0.02);
 
-    const arc = d3
-      .arc()
-      .innerRadius(innerRadius)
-      .outerRadius(radius - 20) as any;
+    const arc = d3.arc<PieDatum>().innerRadius(innerRadius).outerRadius(radius - 20);
+    const arcHover = d3.arc<PieDatum>().innerRadius(innerRadius).outerRadius(radius - 15);
 
-    const arcHover = d3
-      .arc()
-      .innerRadius(innerRadius)
-      .outerRadius(radius - 15) as any;
+    const total = d3.sum(data, (d) => d.value);
 
     const arcs = g
-      .selectAll(".arc")
+      .selectAll<SVGGElement, PieDatum>(".arc")
       .data(pie(data))
       .enter()
       .append("g")
@@ -77,16 +71,13 @@ export function PieChart({
 
     arcs
       .append("path")
-      .attr("d", arc)
-      .attr(
-        "fill",
-        (_: any, i: number) => defaultColors[i % defaultColors.length],
-      )
+      .attr("d", (d) => arc(d) ?? "")
+      .attr("fill", (_, i) => defaultColors[i % defaultColors.length])
       .attr("stroke", "var(--background)")
       .attr("stroke-width", 2)
       .style("cursor", "pointer")
-      .on("mouseover", function (event: any, d: any) {
-        d3.select(this).transition().duration(200).attr("d", arcHover);
+      .on("mouseover", function (event: MouseEvent, d) {
+        d3.select(this).transition().duration(200).attr("d", arcHover(d) ?? "");
 
         const tooltip = d3
           .select("body")
@@ -110,32 +101,29 @@ export function PieChart({
           .style("left", event.pageX + 10 + "px")
           .style("top", event.pageY - 10 + "px");
       })
-      .on("mouseout", function () {
-        d3.select(this).transition().duration(200).attr("d", arc);
+      .on("mouseout", function (_, d) {
+        d3.select(this).transition().duration(200).attr("d", arc(d) ?? "");
 
         d3.selectAll(".d3-tooltip").remove();
       })
       .transition()
       .duration(800)
-      .attrTween("d", function (d: any) {
+      .attrTween("d", function (d) {
         const interpolate = d3.interpolate({ startAngle: 0, endAngle: 0 }, d);
-        return function (t: number) {
-          return arc(interpolate(t));
-        };
+        return (t: number) => arc(interpolate(t)) ?? "";
       });
 
     // 添加标签
     arcs
       .append("text")
-      .attr("transform", (d: any) => `translate(${arc.centroid(d)})`)
+      .attr("transform", (d) => `translate(${arc.centroid(d)})`)
       .attr("text-anchor", "middle")
       .attr("dy", "0.35em")
       .style("font-size", "11px")
       .style("font-weight", "500")
       .style("fill", "white")
       .style("pointer-events", "none")
-      .text((d: any) => {
-        const total = d3.sum(data, (d) => d.value);
+      .text((d) => {
         const percentage = ((d.data.value / total) * 100).toFixed(0);
         return Number(percentage) > 5 ? `${percentage}%` : "";
       });

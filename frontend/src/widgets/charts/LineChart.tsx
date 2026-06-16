@@ -1,11 +1,10 @@
 import { useEffect, useRef } from "react";
 import * as d3 from "d3";
 
+type DataItem = { name: string; value: number };
+
 interface LineChartProps {
-  data: {
-    name: string;
-    value: number;
-  }[];
+  data: DataItem[];
   width?: number;
   height?: number;
   color?: string;
@@ -98,7 +97,7 @@ export function LineChart({
 
     // 创建线条生成器
     const line = d3
-      .line<(typeof data)[0]>()
+      .line<DataItem>()
       .x((d) => x(d.name) || 0)
       .y((d) => y(d.value))
       .curve(d3.curveMonotoneX);
@@ -130,7 +129,7 @@ export function LineChart({
     // 添加区域
     if (showArea) {
       const area = d3
-        .area<(typeof data)[0]>()
+        .area<DataItem>()
         .x((d) => x(d.name) || 0)
         .y0(innerHeight)
         .y1((d) => y(d.value))
@@ -168,7 +167,7 @@ export function LineChart({
     // 添加点
     if (showDots) {
       const dots = g
-        .selectAll(".dot")
+        .selectAll<SVGCircleElement, DataItem>(".dot")
         .data(data)
         .enter()
         .append("circle")
@@ -185,12 +184,12 @@ export function LineChart({
       dots
         .transition()
         .duration(800)
-        .delay((_d: any, i: number) => i * 100)
+        .delay((_d, i) => i * 100)
         .attr("r", 5);
 
       // 悬停效果
       dots
-        .on("mouseover", function (event: any, d: any) {
+        .on("mouseover", function (event: MouseEvent, d) {
           d3.select(this).transition().duration(200).attr("r", 7);
 
           const tooltip = d3

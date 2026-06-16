@@ -1,12 +1,10 @@
 import { useEffect, useRef } from "react";
 import * as d3 from "d3";
 
+type DataItem = { name: string; value: number; color?: string };
+
 interface BarChartProps {
-  data: {
-    name: string;
-    value: number;
-    color?: string;
-  }[];
+  data: DataItem[];
   width?: number;
   height?: number;
   showLabels?: boolean;
@@ -95,7 +93,7 @@ export function BarChart({
 
     // 柱子
     const bars = g
-      .selectAll(".bar")
+      .selectAll<SVGRectElement, DataItem>(".bar")
       .data(data)
       .enter()
       .append("rect")
@@ -106,20 +104,20 @@ export function BarChart({
       .attr("height", 0)
       .attr("rx", 4)
       .attr("ry", 4)
-      .attr("fill", (_d: any, i: number) => data[i].color || "var(--primary)")
+      .attr("fill", (_d, i) => data[i].color || "var(--primary)")
       .style("cursor", "pointer");
 
     // 动画
     bars
       .transition()
       .duration(800)
-      .delay((_d: any, i: number) => i * 100)
-      .attr("y", (d: any) => y(d.value))
-      .attr("height", (d: any) => innerHeight - y(d.value));
+      .delay((_d, i) => i * 100)
+      .attr("y", (d) => y(d.value))
+      .attr("height", (d) => innerHeight - y(d.value));
 
     // 悬停效果
     bars
-      .on("mouseover", function (event: any, d: any) {
+      .on("mouseover", function (event: MouseEvent, d) {
         d3.select(this).transition().duration(200).attr("opacity", 0.8);
 
         const tooltip = d3
@@ -152,22 +150,22 @@ export function BarChart({
 
     // 标签
     if (showLabels) {
-      g.selectAll(".label")
+      g.selectAll<SVGTextElement, DataItem>(".label")
         .data(data)
         .enter()
         .append("text")
         .attr("class", "label")
-        .attr("x", (d: any) => (x(d.name) || 0) + x.bandwidth() / 2)
-        .attr("y", (d: any) => y(d.value) - 8)
+        .attr("x", (d) => (x(d.name) || 0) + x.bandwidth() / 2)
+        .attr("y", (d) => y(d.value) - 8)
         .attr("text-anchor", "middle")
         .style("fill", "var(--foreground)")
         .style("font-size", "11px")
         .style("font-weight", "500")
         .style("opacity", 0)
-        .text((d: any) => `¥${d.value.toLocaleString()}`)
+        .text((d) => `¥${d.value.toLocaleString()}`)
         .transition()
         .duration(800)
-        .delay((_d: any, i: number) => i * 100 + 400)
+        .delay((_d, i) => i * 100 + 400)
         .style("opacity", 1);
     }
   }, [data, width, height, showLabels]);
