@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowUpRight,
@@ -96,6 +96,30 @@ function TransactionListSkeleton() {
   );
 }
 
+function getTypeIcon(type: string) {
+  if (type === "income") return <ArrowUpRight className="size-5 text-emerald-500" />;
+  if (type === "transfer") return <ArrowLeftRight className="size-5 text-blue-500" />;
+  return <ArrowDownRight className="size-5 text-red-500" />;
+}
+
+function getTypeColor(type: string) {
+  if (type === "income") return "bg-emerald-500/15";
+  if (type === "transfer") return "bg-blue-500/15";
+  return "bg-red-500/15";
+}
+
+function getAmountColor(type: string) {
+  if (type === "income") return "text-emerald-500";
+  if (type === "transfer") return "text-blue-500";
+  return "text-red-500";
+}
+
+function getAmountPrefix(type: string) {
+  if (type === "income") return "+";
+  if (type === "transfer") return "→";
+  return "-";
+}
+
 export function TransactionList({
   transactions,
   categories,
@@ -149,22 +173,25 @@ export function TransactionList({
     );
   }
 
-  function startEditing(transaction: TransactionRead) {
-    setDraft({
-      id: transaction.id,
-      name: transaction.name ?? "",
-      amount: String(transaction.amount),
-      type: transaction.type as "expense" | "income" | "transfer",
-      category_id: String(transaction.category_id),
-      account_id: String(transaction.account_id),
-      to_account_id: transaction.to_account_id ? String(transaction.to_account_id) : "",
-      date: transaction.date.slice(0, 10),
-      description: transaction.description ?? "",
-      tags: transaction.tags ?? "",
-    });
-  }
+  const startEditing = useCallback(
+    (transaction: TransactionRead) => {
+      setDraft({
+        id: transaction.id,
+        name: transaction.name ?? "",
+        amount: String(transaction.amount),
+        type: transaction.type as "expense" | "income" | "transfer",
+        category_id: String(transaction.category_id),
+        account_id: String(transaction.account_id),
+        to_account_id: transaction.to_account_id ? String(transaction.to_account_id) : "",
+        date: transaction.date.slice(0, 10),
+        description: transaction.description ?? "",
+        tags: transaction.tags ?? "",
+      });
+    },
+    [],
+  );
 
-  function saveDraft() {
+  const saveDraft = useCallback(() => {
     if (!draft) return;
 
     const amount = parseFloat(draft.amount);
@@ -186,31 +213,7 @@ export function TransactionList({
       tags: draft.tags.trim() || undefined,
     });
     setDraft(null);
-  }
-
-  function getTypeIcon(type: string) {
-    if (type === "income") return <ArrowUpRight className="size-5 text-emerald-500" />;
-    if (type === "transfer") return <ArrowLeftRight className="size-5 text-blue-500" />;
-    return <ArrowDownRight className="size-5 text-red-500" />;
-  }
-
-  function getTypeColor(type: string) {
-    if (type === "income") return "bg-emerald-500/15";
-    if (type === "transfer") return "bg-blue-500/15";
-    return "bg-red-500/15";
-  }
-
-  function getAmountColor(type: string) {
-    if (type === "income") return "text-emerald-500";
-    if (type === "transfer") return "text-blue-500";
-    return "text-red-500";
-  }
-
-  function getAmountPrefix(type: string) {
-    if (type === "income") return "+";
-    if (type === "transfer") return "→";
-    return "-";
-  }
+  }, [draft, onUpdate]);
 
   return (
     <div className="flex flex-col gap-6">
