@@ -5,6 +5,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlmodel import Session
 
 from app.db.session import get_session
+from app.models.account import Account
+from app.models.category import Category
 from app.models.transaction import Transaction
 from app.schemas.transaction import (
     PaginatedTransactions,
@@ -87,9 +89,6 @@ def create_transaction(
 ) -> Transaction:
     """创建新交易。"""
     # 校验外键存在性
-    from app.models.account import Account
-    from app.models.category import Category
-
     if not session.get(Account, transaction_in.account_id):
         raise HTTPException(status_code=422, detail="Account not found")
     if not session.get(Category, transaction_in.category_id):
