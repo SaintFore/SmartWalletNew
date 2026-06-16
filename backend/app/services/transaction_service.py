@@ -37,8 +37,8 @@ def get_all(session: Session) -> list[Transaction]:
     return list(session.exec(statement).all())
 
 
-def get_filtered(
-    session: Session,
+def _apply_transaction_filters(
+    statement: select,  # type: ignore[type-arg]
     *,
     type: str | None = None,
     account_id: int | None = None,
@@ -47,12 +47,8 @@ def get_filtered(
     date_to: date | None = None,
     search: str | None = None,
     tag: str | None = None,
-    limit: int = 50,
-    offset: int = 0,
-) -> tuple[list[Transaction], int]:
-    """获取筛选后的交易列表，返回 (transactions, total_count)。"""
-    statement = select(Transaction)
-
+) -> select:  # type: ignore[type-arg]
+    """向查询语句添加交易筛选条件。"""
     if type:
         statement = statement.where(Transaction.type == type)
     if account_id:
@@ -73,11 +69,37 @@ def get_filtered(
         statement = statement.where(or_(*conditions))
     if tag:
         statement = statement.where(col(Transaction.tags).like(f"%{tag}%"))
+    return statement
 
-    count_statement = select(func.count()).select_from(statement.subquery())
-    total = session.exec(count_statement).one()
 
-    statement = statement.order_by(col(Transaction.date).desc(), col(Transaction.id).desc())
+def get_filtered(
+    session: Session,
+    *,
+    type: str | None = None,
+    account_id: int | None = None,
+    category_id: int | None = None,
+    date_from: date | None = None,
+    date_to: date | None = None,
+    search: str | None = None,
+    tag: str | None = None,
+    limit: int = 50,
+    offset: int = 0,
+) -> tuple[list[Transaction], int]:
+    """获取筛选后的交易列表，返回 (transactions, total_count)。"""
+    filters = dict(
+        type=type,
+        account_id=account_id,
+        category_id=category_id,
+        date_from=date_from,
+        date_to=date_to,
+        search=search,
+        tag=tag,
+    )
+
+    base = _apply_transaction_filters(select(Transaction), **filters)
+    total = session.scalar(select(func.count()).select_from(base.subquery())) or 0
+
+    statement = base.order_by(col(Transaction.date).desc(), col(Transaction.id).desc())
     statement = statement.offset(offset).limit(limit)
     transactions = list(session.exec(statement).all())
 
